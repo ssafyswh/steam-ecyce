@@ -1,85 +1,63 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
+<!-- App.vue -->
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+  <div class="container">
+    <h1>Steam Django App</h1>
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+    <div v-if="authStore.isAuthenticated && authStore.user">
+      <h2>👋 안녕하세요, <span style="color: #42b883;">{{ authStore.user.nickname }}</span>님!</h2>
+      <button class="check-btn" @click="checkUserInfo">내 정보 확인</button>
+      <br><br>
+      <button @click="handleLogout">로그아웃</button>
     </div>
-  </header>
 
-  <RouterView />
+    <div v-else>
+      <p>로그인이 필요합니다.</p>
+      <router-link to="/login">스팀 로그인 하러 가기</router-link>
+    </div>
+
+    <hr>
+    <RouterView />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<script setup>
+import { onMounted } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import axios from 'axios'
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+const authStore = useAuthStore();
+const router = useRouter();
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
+// 앱 켜지자마자 토큰 확인하고 유저 정보 가져오기
+onMounted(() => {
+  authStore.initialize();
+});
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
+const handleLogout = () => {
+  authStore.logout();
+  router.push('/login');
+};
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
+// 내 정보 확인 함수
+const checkUserInfo = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/api/auth/user/me/', {
+      withCredentials: true 
+    });
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+    console.log("API 응답 결과:", response.data);
+    alert(`[성공] 서버에서 받은 steamId: ${response.data.username}`);
+    
+  } catch (error) {
+    console.error("API 요청 실패:", error);
+    alert("정보를 가져오는데 실패했습니다. (콘솔 확인)");
   }
+};
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+</script>
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
+<style>
+.container { text-align: center; margin-top: 50px; font-family: sans-serif; }
+button { padding: 8px 16px; cursor: pointer; background: #ff4d4f; color: white; border: none; border-radius: 4px; }
 </style>
