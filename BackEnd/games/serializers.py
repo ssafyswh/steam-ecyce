@@ -8,7 +8,10 @@ class GameSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Game
-        fields = '__all__'  # 기존 필드들에 steam_url이 자동으로 추가됩니다.
+        fields = [
+            'id', 'app_id', 'title', 'publisher', 'release_date', 
+            'price', 'description', 'header_image', 'genres', 'steam_url'
+        ]
 
     # app_id를 기반으로 실제 스팀 상점 페이지 링크를 생성하는 함수
     def get_steam_url(self, obj):

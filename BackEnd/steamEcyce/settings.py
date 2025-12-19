@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +30,6 @@ SECRET_KEY = 'django-insecure-qc9titjx)&#5s4wzmgm40-s*a(l&wo9dsc6u6^36fuxe*p&slx
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -122,3 +125,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STEAM_API_KEY = os.getenv('STEAM_API_KEY')
+
+REST_FRAMEWORK = {
+    # 기본적인 페이지네이션 클래스 지정
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 한 페이지에 보여줄 데이터 수 (이게 핵심!)
+    'PAGE_SIZE': 10,
+}
