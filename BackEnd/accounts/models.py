@@ -9,7 +9,7 @@ class User(AbstractUser):
     avatar = models.URLField(max_length=500, blank=True, null=True)
 
     # 사용자 라이브러리 정보 갱신된 가장 최근 시점
-    last_synced_at = models.DateTimeField(null=True, blank=True)
+    # last_synced_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.nickname if self.nickname else self.username
