@@ -1,3 +1,4 @@
+# games/models.py
 from django.db import models
 from django.conf import settings
 
@@ -24,11 +25,13 @@ class Game(models.Model):
     )
     
     def __str__(self):
-        return self.name
+        return self.title
     
 class UserGameLibrary(models.Model):
-    # 유저 개인의 라이브러리 정보(중개 테이블 방식)
+    # 유저 개인의 라이브러리 정보
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    
+    # 게임 데이터
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
 
     # 플레이타임 관련 필드(단위: 분)
@@ -40,6 +43,5 @@ class UserGameLibrary(models.Model):
 
     class Meta:
         unique_together = ('user', 'game') # 중복 소유 방지
-
     def __str__(self):
-        return f"{self.user.username}'s {self.game.name}"
+        return f"{self.user.username}'s {self.game.title}"
