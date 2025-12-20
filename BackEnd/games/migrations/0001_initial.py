@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='Game',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('app_id', models.CharField(help_text='Steam AppID', max_length=50, unique=True)),
+                ('appid', models.CharField(help_text='Steam AppID', max_length=50, unique=True)),
                 ('title', models.CharField(max_length=255)),
                 ('publisher', models.CharField(blank=True, default='', max_length=255)),
                 ('release_date', models.DateField(blank=True, null=True)),

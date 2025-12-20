@@ -1,7 +1,7 @@
 from django.db import models
 
 class Game(models.Model):
-    app_id = models.CharField(max_length=50, unique=True, help_text="Steam AppID")
+    appid = models.CharField(max_length=50, unique=True, help_text="Steam AppID")
 
     title = models.CharField(max_length=255)
 

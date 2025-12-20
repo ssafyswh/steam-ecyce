@@ -21,8 +21,8 @@ class Command(BaseCommand):
         total_collected = 0
         more_games = True
 
-        # 이미 DB에 있는 app_id 캐싱 (중복 방지용)
-        existing_app_ids = set(Game.objects.values_list('app_id', flat=True))
+        # 이미 DB에 있는 appid 캐싱 (중복 방지용)
+        existing_appids = set(Game.objects.values_list('appid', flat=True))
 
         while more_games:
             params = {
@@ -59,12 +59,12 @@ class Command(BaseCommand):
                 current_batch_last_id = 0
 
                 for app in apps:
-                    app_id = str(app['appid'])
+                    appid = str(app['appid'])
                     title = app['name']
                     current_batch_last_id = app['appid'] # 마지막 ID 기억해두기
 
                     # 1. 중복 체크
-                    if app_id in existing_app_ids:
+                    if appid in existing_appids:
                         continue
                     
                     # 2. 타이틀 유효성 체크
@@ -73,12 +73,12 @@ class Command(BaseCommand):
 
                     game_list.append(
                         Game(
-                            app_id=app_id,
+                            appid=appid,
                             title=title[:255]
                         )
                     )
                     # 처리된 ID는 existing set에도 추가해야 같은 배치 내 중복도 방지됨
-                    existing_app_ids.add(app_id)
+                    existing_appids.add(appid)
 
                 # Bulk Create
                 if game_list:

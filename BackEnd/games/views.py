@@ -6,13 +6,13 @@ from .models import Game
 from .serializers import GameSerializer
 
 # --- Helper Function (Steam API 통신) ---
-def fetch_game_detail(app_id):
+def fetch_game_detail(appid):
     """
     Steam Store API를 통해 상세 정보를 가져옵니다.
     """
     url = "https://store.steampowered.com/api/appdetails"
     params = {
-        "appids": app_id,
+        "appids": appid,
         "l": "koreana",
         "cc": "kr"
     }
@@ -21,10 +21,10 @@ def fetch_game_detail(app_id):
         response = requests.get(url, params=params, timeout=3)
         data = response.json()
         
-        if not data or str(app_id) not in data or not data[str(app_id)]['success']:
+        if not data or str(appid) not in data or not data[str(appid)]['success']:
             return None
 
-        game_data = data[str(app_id)]['data']
+        game_data = data[str(appid)]['data']
         
         # 가격
         price = 0
@@ -60,7 +60,7 @@ def fetch_game_detail(app_id):
         }
 
     except Exception as e:
-        print(f"Steam API Error ({app_id}): {e}")
+        print(f"Steam API Error ({appid}): {e}")
         return None
 
 
@@ -68,7 +68,7 @@ def fetch_game_detail(app_id):
 class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all().order_by('-release_date')
     serializer_class = GameSerializer
-    lookup_field = 'app_id'
+    lookup_field = 'appid'
     
     # 검색 기능
     filter_backends = [filters.SearchFilter]
@@ -80,7 +80,7 @@ class GameViewSet(viewsets.ModelViewSet):
         """
         # 업데이트 조건: 이미지가 없거나 설명이 없는 경우
         if not instance.header_image or not instance.description:
-            detail_data = fetch_game_detail(instance.app_id)
+            detail_data = fetch_game_detail(instance.appid)
             
             if detail_data:
                 instance.publisher = detail_data['publisher']
