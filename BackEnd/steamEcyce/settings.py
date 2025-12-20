@@ -131,3 +131,23 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    # Access Token 수명을 쿠키 max_age(3600초)와 동일하게 1시간으로 설정
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    
+    # Refresh Token 수명은 더 길게 (보통 1일~2주)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    
+    # 그 외 필요한 설정들 (기본값 유지)
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    
+    # 헤더 관련 (쿠키 인증을 쓰더라도 설정 자체는 두는 것이 좋음)
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}

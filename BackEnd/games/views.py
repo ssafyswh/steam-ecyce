@@ -6,11 +6,23 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import UserGameLibrary, Game
+from .serializers import UserGameLibrarySerializer 
+
 
 class SteamLibrary(APIView):
-    permission_classes = [IsAuthenticated] # 로그인한 사용자만 접근 가능
+    permission_classes = [IsAuthenticated]
+
+    # 내 라이브러리 조회
+    def get(self, request):
+        user = request.user
+        # 유저가 가진 게임들을 가져옴 (플레이타임 많은 순 정렬)
+        my_library = UserGameLibrary.objects.filter(user=user).select_related('game').order_by('-playtime_total')
+        
+        serializer = UserGameLibrarySerializer(my_library, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        print('hihihihi')
         user = request.user
         steam_id = user.username
         
