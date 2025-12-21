@@ -205,7 +205,10 @@ button:disabled {
   border-width: 4px;
 }
 
-@keyframes spin { transform: rotate(360deg); }
+@keyframes spin { 
+  from { transform: rotate(0deg); } 
+  to { transform: rotate(360deg); }
+}
 
 /* 초기화면 등 기타 스타일 */
 .start-box { padding: 40px 0; }

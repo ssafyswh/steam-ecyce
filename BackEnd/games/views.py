@@ -1,6 +1,7 @@
 # games/views.py
 import requests
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -89,3 +90,17 @@ class SteamLibrary(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class GameDetailView(APIView):
+    def get(self, request, appid):
+        game = get_object_or_404(Game, appid=appid)
+        user_game = UserGameLibrary.objects.filter(user=request.user, game=game).first()
+
+        data = {
+            'title': game.title,
+            'header_image': game.header_image,
+            'description': game.description,
+            'playtime_total': user_game.playtime_total if user_game else 0,
+            # 나중에 AI 호출하기
+        }
+        return Response(data)

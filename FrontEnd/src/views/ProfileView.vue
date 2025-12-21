@@ -36,7 +36,7 @@
 
     <!-- 게임 그리드 리스트 -->
     <div class="game-grid">
-      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card">
+      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card" @click="$router.push(`/game/${item.game.appid}`)">
         <div class="image-wrapper">
           <img :src="item.game.header_image" :alt="item.game.title" loading="lazy" />
         </div>
