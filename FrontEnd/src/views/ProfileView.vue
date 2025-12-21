@@ -6,13 +6,27 @@
     <!-- 게임이 하나라도 있어야 버튼이 보이게 설정 -->
     <button @click="$router.push('/recommend')" class="ai-btn">
     🤖 AI 게임 취향 분석하러 가기
-  </button>
-
+    </button>
+    
     <div class="controls">
       <button @click="syncLibrary" :disabled="isLoading" class="sync-btn">
         {{ isLoading ? '스팀과 동기화 중...' : '🔄 라이브러리 최신화 (Steam Sync)' }}
       </button>
       <p v-if="games.length > 0">총 {{ games.length }}개의 게임을 소유중입니다.</p>
+      <!-- 게임 정렬 옵션 선택 -->
+      <div class="sort-container">
+        <span class="sort-label">정렬 기준:</span>
+        <div class="chip-group">
+          <button 
+            v-for="option in sortOptions" 
+            :key="option.value" 
+            :class="['chip-btn', { active: sortBy === option.value }]"
+            @click="sortBy = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- 로딩 상태가 아니고 게임이 없을 때 -->
@@ -22,14 +36,15 @@
 
     <!-- 게임 그리드 리스트 -->
     <div class="game-grid">
-      <div v-for="item in games" :key="item.game.appid" class="game-card">
+      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card">
         <div class="image-wrapper">
           <img :src="item.game.header_image" :alt="item.game.title" loading="lazy" />
         </div>
         <div class="game-info">
           <h3 class="game-title">{{ item.game.title }}</h3>
           <p class="playtime">
-            총 플레이: <span>{{ (item.playtime_total / 60).toFixed(1) }} 시간</span>
+            총 플레이: <span>{{ (item.playtime_total / 60).toFixed(1) }} 시간</span><br>
+            최근 플레이: <span>{{ (item.playtime_recent_2weeks / 60).toFixed(1) }} 시간</span>
           </p>
         </div>
       </div>
@@ -38,15 +53,37 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+
 const router = useRouter();
+const authStore = useAuthStore();
 
 const games = ref([]);
 const isLoading = ref(false);
-const authStore = useAuthStore();
+const sortBy = ref('total');
+const sortOptions = [
+  { label: '제목', value: 'title'},
+  { label: '총 플레이타임', value: 'total'},
+  { label: '최근 플레이(2주)', value: 'recent'},
+]
+
+// 게임 목록 정렬 (제목 / 총 플레이 / 최근 플레이)
+const sortedGames = computed(() => {
+  return [...games.value].sort((a, b) => {
+    if (sortBy.value === 'title') {
+      return a.game.title.localeCompare(b.game.title);
+    } else if (sortBy.value === 'total') {
+      return b.playtime_total - a.playtime_total;
+    } else if (sortBy.value === 'recent') {
+      return b.playtime_recent_2weeks - a.playtime_recent_2weeks;
+    }
+    return 0;
+  })
+})
+
 
 // DB에 저장된 게임 목록 가져오기
 const fetchLibrary = async () => {
@@ -187,4 +224,60 @@ onMounted(() => {
   transform: scale(1.02);
 }
 
+.sort-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.sort-label {
+  color: #8f98a0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.chip-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.chip-btn {
+  background-color: rgba(42, 71, 94, 0.6); /* 스팀 카드 배경색 계열 */
+  color: #c7d5e0;
+  border: 1px solid rgba(102, 192, 244, 0.2);
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip-btn:hover {
+  background-color: rgba(102, 192, 244, 0.2);
+  border-color: rgba(102, 192, 244, 0.5);
+  color: white;
+}
+
+/* 활성화된 칩 스타일 */
+.chip-btn.active {
+  background-color: #66c0f4;
+  color: #1b2838;
+  border-color: #66c0f4;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(102, 192, 244, 0.4);
+}
+
+.game-count {
+  margin-top: 15px;
+  color: #8f98a0;
+}
+
+.game-count strong {
+  color: #66c0f4;
+}
 </style>
