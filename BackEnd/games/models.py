@@ -7,7 +7,7 @@ class Tag(models.Model):
     name = models.CharField(max_length=20, unique=True)
     def __str__(self):
         return self.name
-    
+
 class Game(models.Model):
     appid = models.BigIntegerField(primary_key=True)
     title = models.CharField(max_length=255)
@@ -15,6 +15,8 @@ class Game(models.Model):
     price = models.IntegerField(default=0)
     publisher = models.CharField(max_length=255, blank=True, null=True)
     header_image = models.URLField(max_length=500, blank=True, null=True)
+    release_date = models.DateField(null=True, blank=True)
+    genres = models.CharField(max_length=255, null=True, blank=True)
 
     # 다대다 관계 설정
     tags = models.ManyToManyField(Tag, related_name='games')
@@ -24,6 +26,8 @@ class Game(models.Model):
         related_name='owned_games'
     )
     
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.title
     

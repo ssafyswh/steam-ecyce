@@ -57,6 +57,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     ),
+     # 기본적인 페이지네이션 클래스 지정
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 한 페이지에 보여줄 데이터 수 (이게 핵심!)
+    'PAGE_SIZE': 10,
 }
 
 CORS_ALLOWED_ORIGINS = [

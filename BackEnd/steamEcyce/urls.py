@@ -21,5 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('games/', include('games.urls')),
-    path('ai/', include('ai_analysis.urls')), 
+    path('ai/', include('ai_analysis.urls')),
+    path('api/v1/', include('games.urls')), # 임시 << 기능 동작 확인
 ]
