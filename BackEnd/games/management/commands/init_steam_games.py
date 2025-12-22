@@ -61,7 +61,7 @@ class Command(BaseCommand):
 
                 for app in apps:
                     # API가 주는 키는 'appid', models.py의 필드명도 'appid'
-                    current_appid = str(app['appid'])
+                    current_appid = int(app['appid'])
                     title = app['name']
                     current_batch_last_id = app['appid'] # 다음 페이지 요청을 위해 숫자형 ID 기억
 
