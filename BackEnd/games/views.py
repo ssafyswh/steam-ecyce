@@ -17,7 +17,7 @@ def fetch_game_detail_internal(appid):
     params = {"appids": appid, "l": "koreana", "cc": "kr"}
     
     try:
-        response = requests.get(url, params=params, timeout=3)
+        response = requests.get(url, params=params, timeout=0.5)
         data = response.json()
         
         if not data or str(appid) not in data or not data[str(appid)]['success']:
@@ -73,7 +73,8 @@ class SteamLibrary(APIView):
             "key": settings.STEAM_API_KEY,
             "steamid": steam_id,
             "format": "json",
-            "include_appinfo": 1
+            "include_appinfo": 1,
+            "include_played_free_games": 1,
         }
         
         try:
