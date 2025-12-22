@@ -103,7 +103,7 @@ class GameDetailView(APIView):
 
     def get(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
-
+    
         # 정보가 부족하면 스팀에서 가져와 채워넣기
         if not game.description:
             print(f"🔄 {game.title} 상세 정보 업데이트 중...")

@@ -52,7 +52,7 @@ onMounted(() => {
 
 const handleLogout = () => {
   authStore.logout();
-  router.push('/');
+  // router.push('/');
 };
 
 // 프로필 페이지로 이동

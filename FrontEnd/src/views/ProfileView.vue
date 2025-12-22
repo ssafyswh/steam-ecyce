@@ -10,7 +10,7 @@
     
     <div class="controls">
       <button @click="syncLibrary" :disabled="isLoading" class="sync-btn">
-        {{ isLoading ? '스팀과 동기화 중...' : '🔄 라이브러리 최신화 (Steam Sync)' }}
+        {{ isLoading ? '스팀과 동기화 중...' : '🔄 새로고침' }}
       </button>
       <p v-if="games.length > 0">총 {{ games.length }}개의 게임을 소유중입니다.</p>
       <!-- 게임 정렬 옵션 선택 -->
