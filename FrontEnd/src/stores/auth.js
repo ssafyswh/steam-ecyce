@@ -5,14 +5,14 @@ import { ref } from 'vue';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
-  const isAuthenticated = ref(false);
+  const isAuthenticated = ref(!!localStorage.getItem('isLoggedIn'));
 
   // 앱 시작 시 실행
   const initialize = async () => {
     // 로컬 스토리지에 '로그인 표시'가 없으면 아예 요청을 안 보냄
     const flag = localStorage.getItem('isLoggedIn');
     if (!flag) {
-      console.log("ℹ️ 로그인 이력이 없어 서버 요청을 건너뜁니다.");
+      isAuthenticated.value = false;
       return; 
     }
 
@@ -20,6 +20,8 @@ export const useAuthStore = defineStore('auth', () => {
       await fetchUser();
     } catch (e) {
       // 혹시라도 토큰이 만료됐다면 표시를 지워줌
+      isAuthenticated.value = false;
+      user.value = null;
       localStorage.removeItem('isLoggedIn');
     }
   };

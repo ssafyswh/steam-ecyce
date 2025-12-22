@@ -1,28 +1,28 @@
 <!-- App.vue -->
 <template>
   <div class="layout-wrapper">
-    <!-- 1. 상단 네비게이션 바 -->
     <header class="navbar">
       <div class="navbar-container">
-        <!-- 로고 (왼쪽) -->
-        <router-link to="/" class="logo">
-          Steam Ecyce
-        </router-link>
+        <router-link to="/" class="logo">Steam Ecyce</router-link>
 
-        <!-- 메뉴 영역 (오른쪽) -->
         <div class="nav-right">
-          <!-- 로그인 상태일 때 -->
-          <div v-if="authStore.isAuthenticated && authStore.user" class="user-actions">
+          <!-- 조건을 'isAuthenticated' 하나만 봄 -->
+          <div v-if="authStore.isAuthenticated" class="user-actions">
+            
+            <!-- 닉네임 부분: user 데이터가 로딩되면 표시 -->
             <span class="welcome-msg">
-              <b>{{ authStore.user.nickname }}</b>님
+              <b v-if="authStore.user">{{ authStore.user.nickname }}</b>
+              <!-- 데이터 로딩 중일 때 닉네임 자리에 보여줄 것 (선택사항) -->
+              <span v-else>...</span>
+              님
             </span>
+
             <button class="btn btn-primary" @click="goToProfile">내 라이브러리</button>
             <button class="btn btn-text" @click="handleLogout">로그아웃</button>
           </div>
 
-          <!-- 로그아웃 상태일 때 (여기 수정됨) -->
+          <!-- 로그아웃 상태 -->
           <div v-else>
-            <!-- router-link 대신 button으로 변경하고 클릭 이벤트 연결 -->
             <button class="btn btn-primary" @click="handleSteamLogin">
               스팀 로그인
             </button>
@@ -31,7 +31,6 @@
       </div>
     </header>
 
-    <!-- 2. 메인 컨텐츠 영역 -->
     <main class="main-content">
       <RouterView />
     </main>
@@ -64,16 +63,44 @@ const goToProfile = () => {
 // 스팀 로그인 로직
 const handleSteamLogin = async () => {
   try {
-    // Django에게 스팀 로그인 URL 요청
+    // 1. Django에서 URL 받아오기
     const response = await axios.get('http://localhost:8000/api/auth/steam/url/');
     
-    // 받아온 주소로 브라우저 이동 (스팀 사이트로 이동됨)
     if (response.data.url) {
-      window.location.href = response.data.url;
+      // 2. 팝업 열기
+      const width = 800;
+      const height = 600;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+
+      const popup = window.open(
+        response.data.url,
+        'SteamLogin',
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+      );
+
+      // 3. 팝업으로부터 메시지 수신 대기 (일회성 리스너)
+      window.addEventListener('message', async function onMessage(event) {
+        // 보안: 우리 사이트에서 온 메시지인지 확인 (포트번호까지 일치해야 함)
+        if (event.origin !== window.location.origin) return;
+
+        // 4. "로그인 성공" 메시지를 받으면
+        if (event.data === 'steam-login-success') {
+          console.log("팝업에서 로그인 성공 신호 수신!");
+          
+          // 이벤트 리스너 제거 (중복 실행 방지)
+          window.removeEventListener('message', onMessage);
+          
+          // 유저 정보 갱신 (쿠키는 브라우저가 이미 공유하고 있음)
+          await authStore.initialize(); 
+          
+          // 필요하다면 프로필 페이지로 이동
+          // router.push('/profile'); 
+        }
+      });
     }
   } catch (error) {
-    console.error("스팀 로그인 주소 가져오기 실패:", error);
-    alert("서버와 연결 불가능!! 백엔드가 켜져 있는지 확인해주세요.");
+    console.error("로그인 시작 실패:", error);
   }
 };
 </script>
@@ -187,5 +214,10 @@ body {
   margin: 0 auto;
   padding: 40px 20px;
   box-sizing: border-box;
+}
+
+html {
+  /* 스크롤바가 있든 없든 공간을 확보하여 레이아웃 밀림 방지 */
+  scrollbar-gutter: stable;
 }
 </style>
