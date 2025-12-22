@@ -108,3 +108,6 @@ class GameRecommendationView(APIView):
         elif content.startswith("```"):
             content = content.replace("```", "")
         return json.loads(content.strip())
+
+
+

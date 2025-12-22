@@ -22,6 +22,12 @@
           <h3>게임 소개</h3>
           <div class="description-text" v-html="game.description || '상세 설명이 없습니다.'"></div>
         </section>
+        
+        <section class="description-box">
+          <h3>리뷰 요약</h3>
+          <div class="description-text" v-html="game.description || '상세 설명이 없습니다.'"></div>
+        </section>
+
 
         <section class="ai-section">
           <div class="section-header">
