@@ -35,7 +35,7 @@
 
       <div class="side-column">
         <div class="info-card">
-          <div class="stat-item highlight" v-if="game.playtime_total !== undefined">
+          <div class="stat-item highlight" v-if="game.playtime_total !== ''">
              <span class="label">내 플레이 시간</span>
              <span class="value">{{ (game.playtime_total / 60).toFixed(1) }} 시간</span>
           </div>

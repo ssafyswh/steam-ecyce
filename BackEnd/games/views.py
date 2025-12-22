@@ -28,7 +28,7 @@ def fetch_game_detail_internal(appid):
         # 가격 파싱
         price = 0
         if 'price_overview' in game_data:
-            price = game_data['price_overview']['final'] / 100
+            price = game_data['price_overview']['final'] // 100
         
         # 날짜 파싱
         release_date = None
@@ -84,8 +84,19 @@ class SteamLibrary(APIView):
             for info in games_data:
                 game, _ = Game.objects.get_or_create(
                     appid=info['appid'],
-                    defaults={'title': info['name'], 'header_image': f"https://steamcdn-a.akamaihd.net/steam/apps/{info['appid']}/header.jpg"}
+                    defaults={'title': info['name']}
                 )
+                if not game.description:
+                    detail = fetch_game_detail_internal(info['appid'])
+                    if detail:
+                        game.publisher = detail['publisher']
+                        game.release_date = detail['release_date']
+                        game.price = detail['price']
+                        game.description = detail['description']
+                        game.header_image = detail['header_image']
+                        game.genres = ", ".join(detail['genres'])
+                        game.save()
+                
                 
                 UserGameLibrary.objects.update_or_create(
                     user=user, game=game,
@@ -122,10 +133,13 @@ class GameDetailView(APIView):
                     game.tags.add(tag)
 
         # 플레이타임 계산
-        playtime = 0
+        playtime = ''
+        is_owned = False
         if request.user.is_authenticated:
             ug = UserGameLibrary.objects.filter(user=request.user, game=game).first()
-            if ug: playtime = ug.playtime_total
+            if ug: 
+                playtime = ug.playtime_total
+                is_owned = True
 
         return Response({
             'appid': game.appid,
@@ -135,6 +149,7 @@ class GameDetailView(APIView):
             'publisher': game.publisher,
             'price': game.price,
             'playtime_total': playtime,
+            'is_owned': is_owned,
             'genres': game.genres,
             'release_date': game.release_date
         })
