@@ -1,41 +1,26 @@
 import requests
+from thefuzz import process, fuzz # thefuzz 사용
 from datetime import datetime
 from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from .models import Game, Tag
 from .serializers import GameSerializer
 
-# --- Helper Function (views.py 내부 함수) ---
+# --- Helper 함수는 변경 없음 (생략) ---
 def fetch_game_detail_internal(appid):
-    """
-    Steam Store API를 통해 상세 정보를 가져옵니다.
-    장르(Genre)와 태그(Category)를 구분해서 파싱합니다.
-    """
     url = "https://store.steampowered.com/api/appdetails"
-    params = {
-        "appids": appid,
-        "l": "koreana",
-        "cc": "kr"
-    }
-
+    params = {"appids": appid, "l": "koreana", "cc": "kr"}
     try:
         response = requests.get(url, params=params, timeout=3)
         data = response.json()
-        
-        # 데이터 유효성 검사
         if not data or str(appid) not in data or not data[str(appid)]['success']:
             return None
-
         game_data = data[str(appid)]['data']
-        
-        # 가격 처리
         price = 0
         if 'price_overview' in game_data:
             price = game_data['price_overview']['final'] / 100 
         elif game_data.get('is_free'):
             price = 0
-
-        # 날짜 처리
         release_date = None
         date_str = game_data.get('release_date', {}).get('date', '')
         if date_str:
@@ -46,28 +31,18 @@ def fetch_game_detail_internal(appid):
                     break
                 except ValueError:
                     continue
-        
-        # 1. 장르 (Genre) -> "Action", "RPG" (큰 분류)
-        genre_list = [g['description'] for g in game_data.get('genres', [])]
-
-        # 2. 태그/카테고리 (Category) -> "Single-player", "Co-op" (기능적 분류)
-        # Steam API에서는 이를 'categories'라고 부릅니다.
-        category_list = [c['description'] for c in game_data.get('categories', [])]
-
         return {
             "publisher": game_data.get('publishers', [''])[0],
             "release_date": release_date,
             "price": price,
             "description": game_data.get('short_description', ''),
             "header_image": game_data.get('header_image', ''),
-            "genres_list": genre_list,      # 장르 리스트
-            "categories_list": category_list # 태그 리스트
+            "genres_list": [g['description'] for g in game_data.get('genres', [])],
+            "categories_list": [c['description'] for c in game_data.get('categories', [])]
         }
-
     except Exception as e:
-        print(f"Steam API Error ({appid}): {e}")
+        print(f"Steam App Detail Error ({appid}): {e}")
         return None
-
 
 # --- ViewSet ---
 class GameViewSet(viewsets.ModelViewSet):
@@ -75,66 +50,83 @@ class GameViewSet(viewsets.ModelViewSet):
     serializer_class = GameSerializer
     lookup_field = 'appid'
     
-    # 검색 기능
     filter_backends = [filters.SearchFilter]
     search_fields = ['title']
 
     def _update_game_info_if_needed(self, instance):
-        """
-        상세 정보가 비어있으면 업데이트를 수행하는 내부 메서드
-        """
         if not instance.header_image or not instance.description:
-            # 내부 함수 호출
             detail_data = fetch_game_detail_internal(instance.appid)
-            
             if detail_data:
-                # 1. 기본 정보 업데이트
                 instance.publisher = detail_data['publisher']
                 instance.release_date = detail_data['release_date']
                 instance.price = detail_data['price']
                 instance.description = detail_data['description']
                 instance.header_image = detail_data['header_image']
-                
-                # 2. 장르 (Genre) 처리 -> CharField에 문자열로 저장
-                # 예: "Action, RPG"
-                instance.genres = ", ".join(detail_data['genres_list'])
-                
-                # M2M 저장을 위해 인스턴스 먼저 저장
-                instance.save()
-
-                # 3. 태그 (Tag) 처리 -> Tag 모델(M2M)에 저장
-                # Steam의 'categories' 데이터를 Tag 테이블에 넣습니다.
+                instance.genres = detail_data['genres_list'] # 문자열 저장 필요 시 join 사용
+                instance.save() 
                 if detail_data['categories_list']:
                     for tag_name in detail_data['categories_list']:
-                        # Tag 생성 또는 조회
-                        tag_obj, created = Tag.objects.get_or_create(name=tag_name)
-                        # Game과 Tag 연결
+                        tag_obj, _ = Tag.objects.get_or_create(name=tag_name)
                         instance.tags.add(tag_obj)
-                
                 return True
         return False
 
-    # 1. 목록 조회 (Pagination + Auto Update)
+    # 👇 [수정됨] 길이 필터링이 추가된 스마트 검색 로직
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
+        search_query = request.query_params.get('search', None)
         
+        suggested_query = None
+        search_message = None
+
+        if not queryset.exists() and search_query:
+            all_titles = list(Game.objects.values_list('title', flat=True))
+            
+            # [핵심 수정] "G" 같은 노이즈 제거
+            # 검색어 길이의 50% 이상인 제목만 후보로 남김
+            # 예: 'legedn'(6글자) -> 최소 3글자 이상의 게임만 비교 ('G' 탈락)
+            candidates = [t for t in all_titles if len(t) >= len(search_query) * 0.5]
+
+            # [핵심 수정] WRatio 사용 (Partial + Full Score 종합 고려)
+            if candidates:
+                best_match = process.extractOne(search_query, candidates, scorer=fuzz.WRatio)
+                
+                # 점수 기준을 75점으로 살짝 상향
+                if best_match and best_match[1] >= 75:
+                    suggested_title = best_match[0]
+                    suggested_query = suggested_title
+                    
+                    # 정확한 제목으로 재검색
+                    queryset = self.get_queryset().filter(title=suggested_title)
+                    if not queryset.exists():
+                        queryset = self.get_queryset().filter(title__icontains=suggested_title)
+
+                    search_message = f"'{search_query}'에 대한 결과가 없어 '{suggested_title}'(으)로 검색했습니다."
+
+        page = self.paginate_queryset(queryset)
         if page is not None:
             for game in page:
                 self._update_game_info_if_needed(game)
             serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            response = self.get_paginated_response(serializer.data)
+            
+            if suggested_query:
+                response.data['search_info'] = {
+                    "original_query": search_query,
+                    "suggested_query": suggested_query,
+                    "message": search_message
+                }
+            return response
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-    # 2. 상세 조회
+    
+    # retrieve 메서드 등 나머지는 동일
     def retrieve(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
         except Exception:
             return Response(status=status.HTTP_404_NOT_FOUND)
-
         self._update_game_info_if_needed(instance)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
