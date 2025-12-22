@@ -35,12 +35,13 @@
 
       <div class="side-column">
         <div class="info-card">
-          <div class="stat-item highlight" v-if="game.playtime_total !== undefined">
+          
+          <div class="stat-item highlight" v-if="isLoggedIn && game.playtime_total !== undefined">
              <span class="label">내 플레이 시간</span>
              <span class="value">{{ (game.playtime_total / 60).toFixed(1) }} 시간</span>
           </div>
 
-          <hr class="divider">
+          <hr class="divider" v-if="isLoggedIn">
 
           <div class="stat-item">
             <span class="label">가격</span>
@@ -75,19 +76,38 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import { useAuthStore } from '@/stores/auth'; // 토큰 사용을 위해 추가
+import { useAuthStore } from '@/stores/auth';
 
 const route = useRoute();
 const authStore = useAuthStore();
 const game = ref(null);
 
+// 👇 [추가됨] 로그인 여부 판단 변수 선언 (이게 없어서 문제가 됨)
+// auth.js가 저장해둔 'isLoggedIn' 플래그나 토큰 존재 여부로 초기화
+const isLoggedIn = ref(!!localStorage.getItem('isLoggedIn') || !!authStore.token || !!localStorage.getItem('access_token'));
+
 const fetchGameDetail = async () => {
   try {
-    // 토큰이 있다면 헤더에 추가해서 내 플레이타임까지 가져오기
-    const headers = authStore.token ? { Authorization: `Token ${authStore.token}` } : {};
+    const token = authStore.token || localStorage.getItem('access_token');
     
-    const response = await axios.get(`http://localhost:8000/games/${route.params.id}/`, { headers });
+    // 헤더 설정
+    const config = {
+        headers: {},
+        withCredentials: true 
+    };
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`http://localhost:8000/games/${route.params.id}/`, config);
     game.value = response.data;
+    
+    // 데이터 로드 성공 후 상태 재확인
+    if (token || localStorage.getItem('isLoggedIn')) {
+        isLoggedIn.value = true;
+    }
+
   } catch (error) {
     console.error("데이터 로드 실패:", error);
     alert("게임 정보를 가져올 수 없습니다.");
@@ -100,140 +120,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 전체 레이아웃 */
-.detail-wrapper {
-  color: #c7d5e0;
-  background-color: #1b2838;
-  min-height: 100vh;
-}
-
-/* 1. 상단 배너 스타일 */
-.banner-section {
-  position: relative;
-  height: 350px;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  align-items: flex-end;
-}
-.banner-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(to bottom, rgba(27,40,56,0.6) 0%, #1b2838 100%);
-  backdrop-filter: blur(5px); /* 배경 흐리게 */
-}
-.banner-content {
-  position: relative;
-  z-index: 2;
-  max-width: 1100px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 20px 30px;
-  display: flex;
-  gap: 25px;
-  align-items: flex-end;
-}
-.cover-image {
-  width: 280px;
-  border-radius: 5px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-}
-.title-info h1 {
-  font-size: 3rem;
-  color: white;
-  margin: 0 0 15px 0;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-}
+/* 기존 스타일 유지 */
+.detail-wrapper { color: #c7d5e0; background-color: #1b2838; min-height: 100vh; }
+.banner-section { position: relative; height: 350px; background-size: cover; background-position: center; display: flex; align-items: flex-end; }
+.banner-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(27,40,56,0.6) 0%, #1b2838 100%); backdrop-filter: blur(5px); }
+.banner-content { position: relative; z-index: 2; max-width: 1100px; width: 100%; margin: 0 auto; padding: 0 20px 30px; display: flex; gap: 25px; align-items: flex-end; }
+.cover-image { width: 280px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+.title-info h1 { font-size: 3rem; color: white; margin: 0 0 15px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
 .tags { display: flex; gap: 8px; flex-wrap: wrap; }
-.genre-tag {
-  background: rgba(102, 192, 244, 0.2);
-  color: #66c0f4;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-/* 2. 메인 컨텐츠 (2단 컬럼) */
-.content-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 30px 20px;
-  display: grid;
-  grid-template-columns: 1fr 300px; /* 왼쪽 넓게, 오른쪽 사이드바 */
-  gap: 30px;
-}
-
-/* 왼쪽: 설명 섹션 */
-.description-box {
-  background: rgba(0,0,0,0.2);
-  padding: 25px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
+.genre-tag { background: rgba(102, 192, 244, 0.2); color: #66c0f4; padding: 4px 10px; border-radius: 4px; font-size: 0.9rem; }
+.content-container { max-width: 1100px; margin: 0 auto; padding: 30px 20px; display: grid; grid-template-columns: 1fr 300px; gap: 30px; }
+.description-box { background: rgba(0,0,0,0.2); padding: 25px; border-radius: 8px; margin-bottom: 30px; }
 .description-box h3 { border-bottom: 1px solid #2a475e; padding-bottom: 10px; margin-bottom: 20px; color: white; }
-
-/* v-html로 들어오는 스팀 설명 스타일링 */
 .description-text { line-height: 1.6; font-size: 1rem; color: #acb2b8; }
-/* 스팀 이미지 크기 조절 (중요!) */
-:deep(.description-text img) {
-  max-width: 100%;
-  height: auto;
-  margin: 10px 0;
-  border-radius: 5px;
-}
-
-/* 오른쪽: 사이드바 */
-.info-card {
-  background: #101822; /* 더 어두운 배경 */
-  padding: 20px;
-  border-radius: 5px;
-  position: sticky;
-  top: 20px;
-  border: 1px solid #2a475e;
-}
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  align-items: center;
-}
-.stat-item.highlight {
-  background: rgba(102, 192, 244, 0.1);
-  padding: 10px;
-  border-radius: 5px;
-  margin: -10px -10px 20px -10px;
-}
+:deep(.description-text img) { max-width: 100%; height: auto; margin: 10px 0; border-radius: 5px; }
+.info-card { background: #101822; padding: 20px; border-radius: 5px; position: sticky; top: 20px; border: 1px solid #2a475e; }
+.stat-item { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+.stat-item.highlight { background: rgba(102, 192, 244, 0.1); padding: 10px; border-radius: 5px; margin: -10px -10px 20px -10px; }
 .label { color: #647580; font-size: 0.9rem; }
 .value { color: white; font-weight: bold; text-align: right; }
-.value.price { color: #a4d007; } /* 가격 색상 */
+.value.price { color: #a4d007; }
 .divider { border: 0; height: 1px; background: #2a475e; margin: 15px 0; }
-
-.back-btn {
-  width: 100%;
-  margin-top: 20px;
-  background: #2a475e;
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-}
+.back-btn { width: 100%; margin-top: 20px; background: #2a475e; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
 .back-btn:hover { background: #66c0f4; color: black; }
-
-/* 로딩 */
 .loading-screen { text-align: center; padding-top: 100px; color: white; }
-.spinner {
-  width: 40px; height: 40px; border: 4px solid #2a475e; border-top-color: #66c0f4;
-  border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;
-}
+.spinner { width: 40px; height: 40px; border: 4px solid #2a475e; border-top-color: #66c0f4; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* 반응형 */
-@media (max-width: 768px) {
-  .content-container { grid-template-columns: 1fr; }
-  .banner-content { flex-direction: column; align-items: flex-start; }
-  .cover-image { width: 150px; }
-}
+@media (max-width: 768px) { .content-container { grid-template-columns: 1fr; } .banner-content { flex-direction: column; align-items: flex-start; } .cover-image { width: 150px; } }
 </style>

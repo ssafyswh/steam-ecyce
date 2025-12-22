@@ -71,8 +71,10 @@ class SteamLoginVerifyView(APIView):
             # ---------------------------------------------------------
 
             refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
             
             res = Response({
+                'token': access_token,
                 "message": "Login success",
                 "steam_id": steam_id
             }, status=status.HTTP_200_OK)
