@@ -1,8 +1,9 @@
 <!-- App.vue -->
 <template>
   <div class="container">
-    <h1>Steam Django App</h1>
-
+    <router-link to="/" class="logo-link">
+      <h1>Steam Django App</h1>
+    </router-link>
     <div v-if="authStore.isAuthenticated && authStore.user">
       <h2>👋 안녕하세요, <span style="color: #42b883;">{{ authStore.user.nickname }}</span>님!</h2>
       
@@ -49,4 +50,19 @@ const goToProfile = () => {
 .container { text-align: center; margin-top: 50px; font-family: sans-serif; }
 button { padding: 8px 16px; cursor: pointer; background: #ff4d4f; color: white; border: none; border-radius: 4px; }
 .check-btn { background-color: #42b883; margin-right: 10px; }
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-link h1 {
+  display: inline-block; /* 클릭 영역을 텍스트 크기로 한정 */
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logo-link h1:hover {
+  opacity: 0.8; /* 마우스 올렸을 때 살짝 흐려지는 효과 */
+}
 </style>
