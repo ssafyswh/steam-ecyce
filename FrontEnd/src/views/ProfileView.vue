@@ -1,6 +1,13 @@
 <!-- views/ProfileView.vue -->
 <template>
   <div class="profile-container">
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p>스팀 라이브러리를 동기화 중입니다...</p>
+        <span>잠시만 기다려주세요 (약 1분 정도 소요됩니다.)</span>
+      </div>
+    </div>
     <h2>🎮 내 스팀 라이브러리</h2>
     
     <!-- 게임이 하나라도 있어야 버튼이 보이게 설정 -->
@@ -279,5 +286,53 @@ onMounted(() => {
 
 .game-count strong {
   color: #66c0f4;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(27, 40, 56, 0.85); /* 스팀 배경색 + 투명도 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* 최상단에 위치 */
+  backdrop-filter: blur(4px); /* 배경 흐리게 처리 */
+}
+
+/* 로딩 박스 */
+.loading-box {
+  text-align: center;
+  color: white;
+}
+
+.loading-box p {
+  font-size: 1.2rem;
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.loading-box span {
+  display: block;
+  margin-top: 10px;
+  color: #8f98a0;
+  font-size: 0.9rem;
+}
+
+/*스피너 */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #2a475e;
+  border-top-color: #66c0f4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>
