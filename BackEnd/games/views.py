@@ -1,7 +1,8 @@
 # games/views.py
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,7 +18,7 @@ def fetch_game_detail_internal(appid):
     params = {"appids": appid, "l": "koreana", "cc": "kr"}
     
     try:
-        response = requests.get(url, params=params, timeout=0.5)
+        response = requests.get(url, params=params, timeout=1)
         data = response.json()
         
         if not data or str(appid) not in data or not data[str(appid)]['success']:
@@ -47,7 +48,6 @@ def fetch_game_detail_internal(appid):
             "description": game_data.get('short_description', ''),
             "header_image": game_data.get('header_image', ''),
             "genres": [g['description'] for g in game_data.get('genres', [])],
-            "tags": [c['description'] for c in game_data.get('categories', [])]
         }
     except Exception:
         return None
@@ -87,7 +87,7 @@ class SteamLibrary(APIView):
                     appid=info['appid'],
                     defaults={'title': info['name']}
                 )
-                if not game.description:
+                if not game.header_image:
                     detail = fetch_game_detail_internal(info['appid'])
                     if detail:
                         game.publisher = detail['publisher']
@@ -116,8 +116,9 @@ class GameDetailView(APIView):
     def get(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
 
-        # 정보가 부족하면 스팀에서 가져와 채워넣기
-        if not game.description:
+        # 정보가 갱신된지 하루 이상이 지났을 경우 재갱신
+        now = timezone.now()
+        if not game.header_image or (game.updated_at and now - game.updated_at > timedelta(days=1)):
             print(f"🔄 {game.title} 상세 정보 업데이트 중...")
             detail = fetch_game_detail_internal(appid)
             if detail:
