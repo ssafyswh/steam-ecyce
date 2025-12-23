@@ -80,6 +80,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const game = ref(null);
 const isLoading = ref(true); // 로딩 상태 추가
+const retryCount = ref(0); // 재시도 횟수 제한
 
 const fetchGameDetail = async () => {
   try {
@@ -90,18 +91,30 @@ const fetchGameDetail = async () => {
     
     if (!game.value || !game.value.title || !game.value.description) {
       // 정보가 불완전할경우 잠시 후 재실행
-      console.log("LOADING...");
-      setTimeout(() => fetchGameDetail(), 1000);
-      return
+      if (retryCount.value < 10) {
+        retryCount.value++;
+        console.log("LOADING...");
+        setTimeout(() => fetchGameDetail(), 1000);
+      } else {
+        console.error("재시도 횟수 초과");
+        isLoading.value = false;
+        // retryCount.value = 0;
+      }
+      return;
     }
     isLoading.value = false;
+    retryCount.value = 0;
   } catch (error) {
     console.error("데이터 로드 실패:", error);
     alert("게임 정보를 가져올 수 없습니다.");
   }
 };
 
+// 페이지 이동 검사
 watch(() => route.params.id, () => {
+  retryCount.value = 0;
+  game.value = null;
+  isLoading.value = true;
   fetchGameDetail();
 });
 
