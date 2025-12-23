@@ -2,6 +2,7 @@
 import requests
 from datetime import datetime, timedelta
 from django.conf import settings
+from django.db.models import Case, When, Value, IntegerField
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -10,6 +11,9 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework import status
 from .models import UserGameLibrary, Game, Tag
 from .serializers import UserGameLibrarySerializer
+from asgiref.sync import async_to_sync, sync_to_async
+from ai_analysis.views import get_search_recommendations
+
 
 # [중요] 이 함수는 다른 뷰에서도 쓸 수 있게 클래스 밖으로 뺐습니다.
 def fetch_game_detail_internal(appid):
@@ -157,42 +161,77 @@ class GameDetailView(APIView):
             'release_date': game.release_date
         })
     
-
+''' 
+Django ORM은 기본적으로 동기 방식이므로 비동기 뷰(async def) 안에서 DB를 조회하려면
+sync_to_async로 감싸서 실행해야 에러가 발생하지 않는다.
+'''
 class GameSearchView(APIView):
+    def serialize_game(self, game):
+        return {
+            "appid": game.appid,
+            "title": game.title,
+            "header_image": game.header_image,
+            "price": game.price,
+        }
+    
     def get(self, request):
         query = request.GET.get('q', '').strip()
         limit = request.GET.get('limit') # limit 파라미터 받기 (예: 20)
+        offset = request.GET.get('offset', 0)
         
         if not query:
             return Response({"error": "검색어를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. 검색 쿼리셋 생성
-        games_queryset = Game.objects.filter(title__icontains=query)
+    
+        # 검색 쿼리셋 생성
+        qs = Game.objects.filter(title__icontains=query).annotate(
+            search_priority=Case(
+                When(title__istartswith=query, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by('search_priority', 'title')
         
-        # 2. 전체 개수 계산 (매우 중요: 잘라내기 전에 세어야 함)
-        total_count = games_queryset.count()
-
-        # 3. 리밋이 있으면 자르기 (프리뷰용)
-        if limit:
-            try:
-                limit_int = int(limit)
-                games_queryset = games_queryset[:limit_int]
-            except ValueError:
-                pass # limit가 숫자가 아니면 무시하고 전체 리턴
-
-        # 4. 데이터 직렬화
-        data = [
-            {
-                "appid": game.appid,
-                "title": game.title,
-                "header_image": game.header_image,
-                "price": game.price, # 결과 페이지에서 가격도 보여주면 좋음
-            }
-            for game in games_queryset
-        ]
+        # 전체 개수 계산
+        total_count = qs.count()
         
-        # 5. 응답 구조 변경: 개수와 리스트를 분리
+        # paging 처리
+        try:
+            off_int = int(offset)
+            if limit:
+                lim_int = int(limit)
+                qs = qs[off_int : off_int + lim_int]
+        except ValueError:
+            pass
+         
+        games_list = list(qs)
+        results_data = []
+        recommendations = []
+                
+        if total_count > 0:
+            # 검색 결과가 있는 경우
+            results_data = [self.serialize_game(g) for g in games_list]
+        else:
+            # 검색 결과가 없으면 AI 추천 로직 실행
+            ai_results = async_to_sync(get_search_recommendations)(query)
+            print(f"DEBUG: AI가 반환한 원본 결과 -> {ai_results}")
+            
+            if ai_results:
+                # AI가 준 appid들을 추출
+                suggested_appids = [item['appid'] for item in ai_results if 'appid' in item]
+                print(f"DEBUG: 추출된 appid들 -> {suggested_appids}")
+                
+                def get_valid_recommendations(appids):
+                    # AI가 준 appid 중 우리 DB에 실제 존재하는 게임만 필터링
+                    return list(Game.objects.filter(appid__in=appids))
+
+                rec_games = get_valid_recommendations(suggested_appids)
+                print(f"DEBUG: 우리 DB에서 찾은 게임 개수 -> {len(rec_games)}")
+                recommendations = [self.serialize_game(g) for g in rec_games]
+
+        # 최종 응답 구조 반환
         return Response({
             "count": total_count,
-            "results": data
+            "results": results_data,
+            "recommendations": recommendations # AI 추천 결과 추가
         }, status=status.HTTP_200_OK)
