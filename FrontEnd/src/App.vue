@@ -9,6 +9,7 @@
 
           <!-- 네비게이션 메뉴 추가 -->
           <nav class="nav-menu">
+            <router-link to="/community" class="nav-link">커뮤니티</router-link>
             <router-link to="/gameinfo" class="nav-link">게임 정보</router-link>
             <router-link to="/worldcup" class="nav-link">월드컵</router-link>
           </nav>

@@ -70,7 +70,7 @@
             <span class="value">{{ game.publisher || '정보 없음' }}</span>
           </div>
           
-          <button @click="$router.push('/profile')" class="back-btn">⬅ 내 라이브러리로 돌아가기</button>
+          <button class="back-btn" @click="goToSteam" >STEAM 페이지로 이동</button>
         </div>
       </div>
     </div>
@@ -83,6 +83,10 @@
 </template>
 
 <script setup>
+const goToSteam = () => {
+  window.open(`https://store.steampowered.com/app/${game.value.appid}/`);
+};
+
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
@@ -144,7 +148,7 @@ onMounted(() => {
 <style scoped>
 /* 기존 스타일 유지 */
 .detail-wrapper { color: #c7d5e0; background-color: #1b2838; min-height: 100vh; }
-.banner-section { position: relative; height: 350px; background-size: cover; background-position: center; display: flex; align-items: flex-end; }
+.banner-section { position: relative; height: 300px; background-size: cover; background-position: center; display: flex; align-items: flex-end; }
 .banner-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(27,40,56,0.6) 0%, #1b2838 100%); backdrop-filter: blur(5px); }
 .banner-content { position: relative; z-index: 2; max-width: 1100px; width: 100%; margin: 0 auto; padding: 0 20px 30px; display: flex; gap: 25px; align-items: flex-end; }
 .cover-image { width: 280px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }

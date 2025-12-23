@@ -49,9 +49,6 @@
         <h2>{{ roundLabel }}</h2>
         <p>{{ currentMatchIndex + 1 }} / {{ totalMatchesInRound }} 매치</p>
         
-        <div v-if="byeMessage" class="bye-alert">
-          📢 <b>{{ byeMessage }}</b>
-        </div>
       </div>
 
       <div class="match-container">
@@ -119,7 +116,6 @@ const currentRoundList = ref([]);
 const nextRoundList = ref([]);    
 const currentMatchIndex = ref(0); 
 const roundCountDisplay = ref(0); 
-const byeMessage = ref(''); 
 const isLoading = ref(false);
 const isSaving = ref(false);
 const saveMessage = ref('');
@@ -230,14 +226,12 @@ const startGame = (selectedRound) => {
 };
 
 const setupRound = (list) => {
-  byeMessage.value = ''; 
   roundCountDisplay.value = list.length; 
 
   // 부전승 로직
   if (list.length % 2 !== 0 && list.length > 1) {
     const luckyGame = list.pop(); 
     nextRoundList.value.push(luckyGame); 
-    byeMessage.value = `'${luckyGame.name}'이(가) 부전승으로 다음 라운드에 진출했습니다! 🎉`;
   }
 
   currentRoundList.value = list;
@@ -269,7 +263,6 @@ const resetGame = () => {
   gameState.value = 'setup';
   currentRoundList.value = [];
   nextRoundList.value = [];
-  byeMessage.value = '';
 };
 
 const formatPlaytime = (minutes) => (minutes / 60).toFixed(1);
@@ -337,16 +330,6 @@ const formatPlaytime = (minutes) => (minutes / 60).toFixed(1);
   border-radius: 8px;
 }
 
-.bye-alert {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  padding: 10px 20px;
-  border-radius: 20px;
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 0.9rem;
-  animation: popIn 0.3s ease-out;
-}
 @keyframes popIn {
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }

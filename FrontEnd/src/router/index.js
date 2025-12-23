@@ -9,6 +9,7 @@ import MainView from '@/views/MainView.vue'
 import SearchResultsView from '@/views/SearchResultsView.vue'
 import GameInfoView from '@/views/GameInfoView.vue'
 import WorldcupView from '@/views/WorldcupView.vue'
+import CommunityView from '@/views/CommunityView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,14 +51,19 @@ const router = createRouter({
       component: WorldcupView
     },
     {
-      path: '',
-      name: 'main',
-      component: MainView
-    },
-    {
       path: '/search',
       name: 'search-results',
       component: SearchResultsView
+    },
+    {
+      path: '/community',
+      name: 'community',
+      component: CommunityView
+    },
+    {
+      path: '',
+      name: 'main',
+      component: MainView
     },
   ],
 })
