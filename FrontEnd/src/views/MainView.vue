@@ -30,15 +30,14 @@
           @click="goToDetail(game.appid)"
         >
           <div class="thumb-wrapper">
-            <img :src="game.header_image" alt="cover" class="thumb">
+            <img :src="game.header_image || `https://cdn.akamai.steamstatic.com/steam/apps/${game.appid}/header.jpg`" alt="cover" class="thumb">
           </div>
           <div class="info-wrapper">
             <span class="game-title">{{ game.title }}</span>
-            <span class="appid-badge">ID: {{ game.appid }}</span>
           </div>
         </div>
 
-        <div v-if="totalCount > 20" class="view-all-container">
+        <div v-if="totalCount > 5" class="view-all-container">
            <button @click="goToFullSearch" class="view-all-btn">
              + 전체 결과 보기 ({{ totalCount }}개)
            </button>
@@ -104,7 +103,7 @@ const performSearch = async (query) => {
     searchKeyword.value = query; 
     
     // 👇 [변경] limit=20 파라미터 추가
-    const response = await axios.get(`http://localhost:8000/games/search/?q=${query}&limit=20`);
+    const response = await axios.get(`http://localhost:8000/games/search/?q=${query}&limit=5`);
     
     // 백엔드 구조 변경(dict)에 맞춰 데이터 바인딩
     searchResults.value = response.data.results;

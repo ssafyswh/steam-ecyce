@@ -19,7 +19,7 @@
         @click="$router.push(`/game/${game.appid}`)"
       >
         <div class="image-wrapper">
-          <img :src="game.header_image" :alt="game.title" loading="lazy">
+          <img :src="game.header_image || `https://cdn.akamai.steamstatic.com/steam/apps/${game.appid}/header.jpg`" :alt="game.title" loading="lazy">
         </div>
         <div class="game-info">
           <h3 class="game-title">{{ game.title }}</h3>
