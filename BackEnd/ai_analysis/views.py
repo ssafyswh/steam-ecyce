@@ -75,7 +75,6 @@ class GameRecommendationView(APIView):
                     rec['appid'] = db_game.appid
                     if db_game.appid in owned_appids:
                         rec['is_owned'] = True
-                        rec['reason'] = f"{rec['reason']} (이 게임은 이미 라이브러리에서 잠자고 있어요!)"
                     else:
                         rec['is_owned'] = False
                     # db 검색 성공(유효) 결과만 저장 

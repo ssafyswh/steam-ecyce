@@ -130,9 +130,10 @@ class GameDetailView(APIView):
                 game.genres = ", ".join(detail['genres'])
                 game.save()
                 
-                for tag_name in detail['tags']:
-                    tag, _ = Tag.objects.get_or_create(name=tag_name)
-                    game.tags.add(tag)
+                
+                # for tag_name in detail['tags']:
+                #     tag, _ = Tag.objects.get_or_create(name=tag_name)
+                #     game.tags.add(tag)
 
         # 플레이타임 계산
         playtime = ''
