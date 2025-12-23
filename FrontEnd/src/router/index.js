@@ -1,11 +1,13 @@
 // router/indexedDB.js
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue' 
+import LoginView from '../views/LoginView.vue'
 import SteamCallback from '../views/SteamCallback.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import RecommendView from '@/views/RecommendView.vue'
 import GameDetailView from '@/views/GameDetailView.vue'
 import MainView from '@/views/MainView.vue'
+import GameInfoView from '@/views/GameInfoView.vue'
+import WorldcupView from '@/views/WorldcupView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -35,6 +37,16 @@ const router = createRouter({
       path: '/recommend',
       name: 'recommend',
       component: RecommendView
+    },
+    {
+      path: '/gameinfo',
+      name: 'gameinfo',
+      component: GameInfoView
+    },
+    {
+      path: '/worldcup',
+      name: 'worldcup',
+      component: WorldcupView
     },
     {
       path: '',

@@ -2,6 +2,18 @@
   <div v-if="!isLoading && game &&game.title" class="detail-wrapper">
     <div class="banner-section" :style="{ backgroundImage: `url(${game.header_image})` }">
       <div class="banner-overlay"></div>
+
+      <!-- Favorite게임이면 보이는거 -->
+      <div v-if="isMyFavorite" class="gold-seal">
+        <div class="seal-content">
+          <span class="trophy">🏆</span>
+          <span class="text-top">MY BEST</span>
+          <span class="text-main">GAME</span>
+        </div>
+        <!-- 반짝이는 효과 -->
+        <div class="shine"></div>
+      </div>
+
       <div class="banner-content">
         <img :src="game.header_image" class="cover-image" />
         <div class="title-info">
@@ -81,6 +93,7 @@ const authStore = useAuthStore();
 const game = ref(null);
 const isLoading = ref(true); // 로딩 상태 추가
 const retryCount = ref(0); // 재시도 횟수 제한
+const isMyFavorite = ref(false);
 
 const fetchGameDetail = async () => {
   try {
@@ -88,7 +101,8 @@ const fetchGameDetail = async () => {
     const headers = authStore.token ? { Authorization: `Token ${authStore.token}` } : {};
     const response = await axios.get(`http://localhost:8000/games/${route.params.id}/`, { headers });
     game.value = response.data;
-    
+    isMyFavorite.value = response.data.is_favorite;
+
     if (!game.value || !game.value.title || !game.value.description) {
       // 정보가 불완전할경우 잠시 후 재실행
       if (retryCount.value < 10) {
@@ -134,7 +148,7 @@ onMounted(() => {
 /* 1. 상단 배너 스타일 */
 .banner-section {
   position: relative;
-  height: 350px;
+  height: 300px;
   background-size: cover;
   background-position: center;
   display: flex;
@@ -260,4 +274,107 @@ onMounted(() => {
   .banner-content { flex-direction: column; align-items: flex-start; }
   .cover-image { width: 150px; }
 }
+
+/* ---------------------------------- */
+/* 🏆 금장 씰 (Gold Seal) 스타일 */
+/* ---------------------------------- */
+.gold-seal {
+  position: absolute;
+  top: 30px;    /* 배너 상단에서의 거리 */
+  right: 40px;  /* 배너 우측에서의 거리 */
+  z-index: 10;
+  
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  
+  /* 금색 그라데이션 배경 */
+  background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+  
+  /* 입체적인 그림자 (도장 찍힌 느낌) */
+  box-shadow: 
+    0 0 0 5px #b38728, /* 바깥 테두리 */
+    0 0 20px rgba(0,0,0,0.5), /* 전체 그림자 */
+    inset 0 0 20px rgba(107, 72, 5, 0.5); /* 안쪽 음영 */
+    
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* 쿵! 하고 찍히는 애니메이션 */
+  animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: rotate(15deg); /* 살짝 기울이기 */
+}
+
+/* 씰 내부 점선 테두리 */
+.seal-content {
+  width: 85%;
+  height: 85%;
+  border: 2px dashed #d69d41; /* 진한 금색 점선 */
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #5c3a00; /* 글자색: 짙은 갈색/금색 */
+  text-align: center;
+  font-family: serif; /* 명조체 계열이 고급스러움 */
+}
+
+.trophy {
+  font-size: 1.5rem;
+  margin-bottom: -5px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+}
+
+.text-top {
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-top: 5px;
+}
+
+.text-main {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
+}
+
+/* 은은하게 지나가는 반짝임 효과 */
+.shine {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 60%);
+  background-size: 200% 200%;
+  animation: shineMove 3s infinite linear;
+  pointer-events: none;
+}
+
+/* 애니메이션 정의 */
+@keyframes stampIn {
+  from { transform: scale(3) rotate(15deg); opacity: 0; }
+  to { transform: scale(1) rotate(15deg); opacity: 1; }
+}
+
+@keyframes shineMove {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 모바일 대응: 크기 좀 줄이기 */
+@media (max-width: 768px) {
+  .gold-seal {
+    width: 100px;
+    height: 100px;
+    top: 10px;
+    right: 10px;
+  }
+  .text-top { font-size: 0.6rem; }
+  .text-main { font-size: 1.1rem; }
+  .trophy { font-size: 1.2rem; }
+}
+
 </style>

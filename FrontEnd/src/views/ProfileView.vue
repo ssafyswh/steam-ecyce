@@ -17,9 +17,9 @@
     
     <div class="controls">
       <button @click="syncLibrary" :disabled="isLoading" class="sync-btn">
-        {{ isLoading ? '스팀과 동기화 중...' : '🔄 라이브러리 최신화 (Steam Sync)' }}
+        {{ isLoading ? '스팀과 동기화 중...' : '🔄 라이브러리 최신화' }}
       </button>
-      <p v-if="games.length > 0">총 {{ games.length }}개의 게임을 소유중입니다.</p>
+      <p v-if="games.length > 0">총 {{ games.length }}개의 게임을 소유중!</p>
       <!-- 게임 정렬 옵션 선택 -->
       <div class="sort-container">
         <span class="sort-label">정렬 기준:</span>
@@ -38,7 +38,7 @@
 
     <!-- 로딩 상태가 아니고 게임이 없을 때 -->
     <div v-if="!isLoading && games.length === 0" class="empty-state">
-      <p>등록된 게임이 없습니다. 위 버튼을 눌러 스팀 정보를 가져오세요!</p>
+      <p>등록된 게임이 없습니다! 위 버튼을 눌러 스팀 정보를 가져오세요!</p>
     </div>
 
     <!-- 게임 그리드 리스트 -->

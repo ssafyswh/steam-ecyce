@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SteamLibrary, GameDetailView
+from .views import SteamLibrary, GameDetailView, FavoriteGame
 
 # 혹시나 router 관련 코드가 있다면 지워도 됩니다.
 # 우리가 필요한 건 딱 이 두 가지 경로입니다.
@@ -10,4 +10,8 @@ urlpatterns = [
     
     # 2. 게임 상세 정보 (DB 없으면 크롤링)
     path('<int:appid>/', GameDetailView.as_view(), name='game-detail'),
+
+    # 좋아하는 게임 정보 등록
+    path('favorite/', FavoriteGame.as_view(), name='favorite'),
+
 ]
