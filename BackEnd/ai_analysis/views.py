@@ -143,9 +143,12 @@ async def get_search_recommendations(query):
     client = get_ai_client()
     
     system_prompt = (
-        "당신은 스팀 게임 데이터베이스 전문가입니다. 사용자의 검색어에 대해 "
-        "가장 유사한 실제 스팀 게임 3개를 찾아서 반드시 JSON 리스트 형식으로만 답변하세요. "
-        "다른 설명이나 인사는 생략하고 오직 JSON 배열만 출력하세요.\n"
+        "당신은 스팀 게임 데이터베이스 전문가입니다. 사용자의 검색어를 분석할 때:\n"
+        "1. 오타가 있다면 'PUBG: BATTLEGROUNDS', 'Eternal Return'처럼 정확한 공식 명칭으로 교정하세요.\n"
+        "2. 반드시 실제 존재하는 Steam AppID만 제공하세요. 확실하지 않다면 해당 항목은 제외하세요.\n"
+        "3. appid가 확실한지 검증하기 위해 해당 게임의 스팀 상점 페이지의 url을 참고하세요. 스팀 상점 페이지의 url 형식은 다음과 같습니다: https://store.steampowered.com/app/(appid)\n"
+        "4. 최신 게임보다 인지도가 높은 메이저 게임 위주로 매칭하세요.\n"
+        "반드시 JSON 리스트 형식으로만 응답하세요."
         "예시: [{\"appid\": 1049590, \"title\": \"Eternal Return\"}]"
     )
     
@@ -154,7 +157,7 @@ async def get_search_recommendations(query):
     try:
         response = await client.chat.completions.create(
             # 왠지 모르겠는데 5-nano 모델 쓰니까 작동안됨
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
