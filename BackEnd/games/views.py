@@ -156,3 +156,43 @@ class GameDetailView(APIView):
             'genres': game.genres,
             'release_date': game.release_date
         })
+    
+
+class GameSearchView(APIView):
+    def get(self, request):
+        query = request.GET.get('q', '').strip()
+        limit = request.GET.get('limit') # limit 파라미터 받기 (예: 20)
+        
+        if not query:
+            return Response({"error": "검색어를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. 검색 쿼리셋 생성
+        games_queryset = Game.objects.filter(title__icontains=query)
+        
+        # 2. 전체 개수 계산 (매우 중요: 잘라내기 전에 세어야 함)
+        total_count = games_queryset.count()
+
+        # 3. 리밋이 있으면 자르기 (프리뷰용)
+        if limit:
+            try:
+                limit_int = int(limit)
+                games_queryset = games_queryset[:limit_int]
+            except ValueError:
+                pass # limit가 숫자가 아니면 무시하고 전체 리턴
+
+        # 4. 데이터 직렬화
+        data = [
+            {
+                "appid": game.appid,
+                "title": game.title,
+                "header_image": game.header_image,
+                "price": game.price, # 결과 페이지에서 가격도 보여주면 좋음
+            }
+            for game in games_queryset
+        ]
+        
+        # 5. 응답 구조 변경: 개수와 리스트를 분리
+        return Response({
+            "count": total_count,
+            "results": data
+        }, status=status.HTTP_200_OK)

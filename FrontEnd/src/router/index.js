@@ -6,6 +6,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import RecommendView from '@/views/RecommendView.vue'
 import GameDetailView from '@/views/GameDetailView.vue'
 import MainView from '@/views/MainView.vue'
+import SearchResultsView from '@/views/SearchResultsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -40,6 +41,11 @@ const router = createRouter({
       path: '',
       name: 'main',
       component: MainView
+    },
+    {
+      path: '/search',
+      name: 'search-results',
+      component: SearchResultsView
     },
   ],
 })
