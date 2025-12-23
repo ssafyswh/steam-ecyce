@@ -20,11 +20,6 @@
         <button v-if="searchKeyword" @click="clearSearch" class="clear-btn">✕</button>
       </div>
 
-      <!-- <div class="button-group" v-if="searchResults.length === 0">
-        <button @click="onSearchInput" class="steam-btn">Friday 검색</button>
-        <button @click="$router.push('/profile')" class="steam-btn secondary">내 라이브러리</button>
-      </div> -->
-
       <div v-if="searchResults.length > 0" class="result-list">
         <div 
           v-for="game in searchResults" 
@@ -55,8 +50,35 @@
         </div>
       </div>
 
-      <div v-if="isSearched && searchResults.length === 0" class="no-result">
-        <p>검색 결과가 없습니다.</p>
+      <div v-if="isSearched && searchResults.length === 0" class="no-result-container">
+        <p>🔍 '{{ searchKeyword }}'에 대한 정확한 검색 결과가 없습니다.</p>
+      </div>
+      <div v-if="recommendations.length > 0" class="recommendation-section">
+        <p class="recommend-title">✨ 혹시 이 게임을 찾으셨나요?</p>
+        <div class="result-list ai-recommend-list">
+          <div
+            v-for="game in recommendations"
+            :key="game.appid"
+            class="result-item"
+            @click="goToDetail(game.appid)"
+          >
+            <div class="thumb-wrapper">
+              <img
+                v-if="!game.isImageError"
+                :src="game.header_image || `https://cdn.akamai.steamstatic.com/steam/apps/${game.appid}/header.jpg`"
+                @error="handleImageError(game)"
+                class="thumb"
+              >
+              <div v-else class="fallback-placeholder">
+                <span class="placeholder-icon">🎮</span>
+              </div>
+            </div>
+            <div class="info-wrapper">
+              <span class="game-title">{{ game.title }}</span>
+              <span class="recommend-badge">추천됨</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -72,6 +94,7 @@ const route = useRoute();
 
 const searchKeyword = ref('');
 const searchResults = ref([]);
+const recommendations = ref([])
 const totalCount = ref(0); // 전체 개수 저장용
 const isSearched = ref(false);
 let debounceTimeout = null;
@@ -85,21 +108,33 @@ const handleImageError = (game) => {
 const performSearch = async (query) => {
   if (!query) {
       searchResults.value = [];
+      recommendations.value = [];
       isSearched.value = false;
       totalCount.value = 0;
       return;
   }
   try {
     searchKeyword.value = query; 
+
     const response = await axios.get(`http://localhost:8000/games/search/`, {
       params: {q: query, limit: 5}
     });
+
     searchResults.value = response.data.results;
     totalCount.value = response.data.count;
+    // 검색 결과가 없을 경우 ai 추천 결과 할당
+    if (searchResults.value.length === 0) {
+      recommendations.value = response.data.recommendations || [];
+      console.log("추천 데이터 확인:", recommendations.value);
+    } else {
+      recommendations.value = [];
+    }
+
     isSearched.value = true;
   } catch (error) {
     console.error("검색 실패:", error);
     searchResults.value = [];
+    recommendations.value = [];
     isSearched.value = true;
   }
 };
@@ -111,6 +146,7 @@ const handleInput = () => {
 
   if (!query) {
     searchResults.value = [];
+    recommendations.value = [];
     isSearched.value = false;
     totalCount.value = 0;
     router.replace({ query: {} });
@@ -120,7 +156,7 @@ const handleInput = () => {
   debounceTimeout = setTimeout(() => {
     performSearch(query);
     router.replace({ query: { q: query }}).catch(() => {});
-  }, 300);
+  }, 1000);
 }
 
 // 엔터 입력하면 바로 실행
@@ -134,6 +170,7 @@ const onSearchInput = () => {
 const clearSearch = () => {
   searchKeyword.value = '';
   searchResults.value = [];
+  recommendations.value = [];
   totalCount.value = 0;
   isSearched.value = false;
   router.push({ query: {} });
@@ -244,5 +281,54 @@ input::placeholder { color: #9aa0a6; }
 .view-all-btn:hover {
   background: #eef6fc;
   text-decoration: underline;
+}
+
+.no-result-container {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.no-result-msg {
+  text-align: center;
+  color: #8f98a0;
+  margin-bottom: 20px;
+}
+
+.recommendation-section {
+  margin-top: 20px;
+  text-align: left;
+}
+
+/* 추천 섹션 내의 리스트는 상단 여백을 줄임 */
+.recommendation-section .result-list {
+  margin-top: 10px;
+}
+
+.ai-recommend-list {
+  border-color: #66c0f4;
+  background: #fdfdff;
+}
+
+.ai-item:hover {
+  background-color: #eef6fc;
+}
+
+.recommend-title {
+  font-size: 0.9rem;
+  color: #2D73FF;
+  margin-bottom: 8px;
+  font-weight: bold;
+  padding-left: 5px;
+}
+
+.recommend-badge {
+  font-size: 0.75rem;
+  color: #2D73FF;
+  background: rgba(45, 115, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 4px;
+  font-weight: 500;
 }
 </style>

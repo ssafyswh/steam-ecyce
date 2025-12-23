@@ -1,6 +1,7 @@
 # ai_analysis/views.py
-import json
 import environ
+import json
+import re
 from pathlib import Path
 from asgiref.sync import async_to_sync
 from openai import AsyncOpenAI
@@ -136,3 +137,70 @@ class GameRecommendationView(APIView):
         elif content.startswith("```"):
             content = content.replace("```", "")
         return json.loads(content.strip())
+
+# 검색 결과가 없을 때, 검색어와 유사한 실제 게임 제목을 AI에게 물어보는 기능
+async def get_search_recommendations(query):
+    client = get_ai_client()
+    
+    system_prompt = (
+        "당신은 스팀 게임 데이터베이스 전문가입니다. 사용자의 검색어에 대해 "
+        "가장 유사한 실제 스팀 게임 3개를 찾아서 반드시 JSON 리스트 형식으로만 답변하세요. "
+        "다른 설명이나 인사는 생략하고 오직 JSON 배열만 출력하세요.\n"
+        "예시: [{\"appid\": 1049590, \"title\": \"Eternal Return\"}]"
+    )
+    
+    user_prompt = f"사용자 검색어 '{query}'와 가장 유사한 게임 3개의 appid와 제목을 JSON으로 알려주세요."
+
+    try:
+        response = await client.chat.completions.create(
+            # 왠지 모르겠는데 5-nano 모델 쓰니까 작동안됨
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            
+            max_completion_tokens=300,
+        )
+        if not response.choices or not response.choices[0].message.content:
+            print("🚨 [AI 에러] 응답 본문이 비어있습니다. 모델명이나 API 키를 확인하세요.")
+            return []
+        
+        # 응답 refine
+        raw_content = response.choices[0].message.content.strip()
+        print(f"📡 [AI 원본 응답]: {raw_content}")
+        start_idx = raw_content.find('[')
+        end_idx = raw_content.rfind(']')
+        
+        if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
+            content = raw_content[start_idx : end_idx + 1]
+        else:
+            # 리스트 형태가 없으면 전체 내용을 사용
+            content = raw_content
+
+        if not content:
+            print("🚨 [AI 에러] 유효한 JSON 구간을 찾을 수 없습니다.")
+            return []
+
+        # 5. JSON 파싱 및 구조 정규화
+        data = json.loads(content)
+        
+        # 만약 리스트가 아니라 딕셔너리로 왔을 경우 대응
+        if isinstance(data, dict):
+            for key in ['recommendations', 'games', 'results']:
+                if key in data and isinstance(data[key], list):
+                    return data[key]
+            # 딕셔너리 내부의 첫 번째 리스트를 반환하거나 단일 객체를 리스트화
+            for val in data.values():
+                if isinstance(val, list): return val
+            return [data]
+            
+        return data if isinstance(data, list) else []
+
+    except json.JSONDecodeError as e:
+        print(f"❌ [JSON 파싱 에러]: {e}")
+        print(f"👉 문제의 텍스트: {content}")
+        return []
+    except Exception as e:
+        print(f"❌ [AI 서비스 에러]: {e}")
+        return []
