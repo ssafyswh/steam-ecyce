@@ -3,16 +3,33 @@
   <div class="layout-wrapper">
     <header class="navbar">
       <div class="navbar-container">
-        <router-link to="/" class="logo">Steam Ecyce</router-link>
+        
+        <div class="nav-left">
+          <router-link to="/" class="logo">Steam Ecyce</router-link>
 
+          <!-- 네비게이션 메뉴 추가 -->
+          <nav class="nav-menu">
+            <router-link to="/gameinfo" class="nav-link">게임 정보</router-link>
+            <router-link to="/worldcup" class="nav-link">월드컵</router-link>
+          </nav>
+        </div>
+
+        <!-- 오른쪽 영역: 유저 액션 (기존 유지) -->
         <div class="nav-right">
           <!-- 조건을 'isAuthenticated' 하나만 봄 -->
           <div v-if="authStore.isAuthenticated" class="user-actions">
+
+            <!-- 아바타 이미지 -->
+            <img 
+              v-if="authStore.user && authStore.user.avatar" 
+              :src="authStore.user.avatar" 
+              alt="User Avatar" 
+              class="user-avatar"
+            />
             
-            <!-- 닉네임 부분: user 데이터가 로딩되면 표시 -->
+            <!-- 닉네임 부분 -->
             <span class="welcome-msg">
               <b v-if="authStore.user">{{ authStore.user.nickname }}</b>
-              <!-- 데이터 로딩 중일 때 닉네임 자리에 보여줄 것 (선택사항) -->
               <span v-else>...</span>
               님
             </span>
@@ -41,7 +58,7 @@
 import { onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
-import axios from 'axios'; // axios 추가
+import axios from 'axios';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -55,47 +72,30 @@ const handleLogout = () => {
   router.push('/');
 };
 
-// 프로필 페이지로 이동
 const goToProfile = () => {
   router.push('/profile');
 };
 
-// 스팀 로그인 로직
 const handleSteamLogin = async () => {
   try {
-    // 1. Django에서 URL 받아오기
     const response = await axios.get('http://localhost:8000/api/auth/steam/url/');
-    
     if (response.data.url) {
-      // 2. 팝업 열기
       const width = 800;
       const height = 600;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
 
-      const popup = window.open(
+      window.open(
         response.data.url,
         'SteamLogin',
         `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
       );
 
-      // 3. 팝업으로부터 메시지 수신 대기 (일회성 리스너)
       window.addEventListener('message', async function onMessage(event) {
-        // 보안: 우리 사이트에서 온 메시지인지 확인 (포트번호까지 일치해야 함)
         if (event.origin !== window.location.origin) return;
-
-        // 4. "로그인 성공" 메시지를 받으면
         if (event.data === 'steam-login-success') {
-          console.log("팝업에서 로그인 성공 신호 수신!");
-          
-          // 이벤트 리스너 제거 (중복 실행 방지)
           window.removeEventListener('message', onMessage);
-          
-          // 유저 정보 갱신 (쿠키는 브라우저가 이미 공유하고 있음)
           await authStore.initialize(); 
-          
-          // 필요하다면 프로필 페이지로 이동
-          // router.push('/profile'); 
         }
       });
     }
@@ -115,34 +115,39 @@ body {
   color: #333333;
 }
 
-/* 레이아웃 */
 .layout-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
-/* 네비게이션 바 스타일 */
 .navbar {
   width: 100%;
   height: 60px;
-  border-bottom: 1px solid #eaeaea; /* 하단에 얇은 회색 선 */
+  border-bottom: 1px solid #eaeaea;
   background-color: #ffffff;
   display: flex;
   align-items: center;
-  position: sticky; /* 스크롤 내려도 상단 고정 */
+  position: sticky;
   top: 0;
   z-index: 1000;
 }
 
 .navbar-container {
   width: 100%;
-  max-width: 1200px; /* 컨텐츠 최대 너비 제한 */
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  justify-content: space-between; /* 로고와 메뉴 양 끝 배치 */
+  justify-content: space-between; /* 양 끝 정렬 */
   align-items: center;
+}
+
+/* [추가] 왼쪽 영역 (로고 + 메뉴) 그룹화 */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 32px; /* 로고와 메뉴 사이 간격 */
 }
 
 /* 로고 스타일 */
@@ -154,11 +159,36 @@ body {
   letter-spacing: -0.5px;
 }
 
+/* [추가] 네비게이션 메뉴 스타일 */
+.nav-menu {
+  display: flex;
+  gap: 20px; /* 메뉴 아이템 간 간격 */
+}
+
+/* [추가] 개별 메뉴 링크 스타일 */
+.nav-link {
+  text-decoration: none;
+  color: #666;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #42b883; /* 호버 시 색상 변경 (Primary Color) */
+}
+
+/* (선택사항) 현재 활성화된 라우트 스타일 */
+.router-link-active.nav-link {
+  color: #42b883;
+  font-weight: 600;
+}
+
 /* 우측 메뉴 영역 */
 .nav-right {
   display: flex;
   align-items: center;
-  gap: 16px; /* 요소 사이 간격 */
+  gap: 16px;
 }
 
 .user-actions {
@@ -173,7 +203,6 @@ body {
   margin-right: 8px;
 }
 
-/* 버튼 공통 스타일 (플랫하고 깔끔하게) */
 .btn {
   padding: 8px 16px;
   font-size: 0.9rem;
@@ -186,7 +215,6 @@ body {
   display: inline-block;
 }
 
-/* 주요 버튼 (Vue Green) */
 .btn-primary {
   background-color: #42b883;
   color: white;
@@ -196,7 +224,6 @@ body {
   background-color: #3aa876;
 }
 
-/* 텍스트 버튼 (로그아웃 등 - 배경 없음) */
 .btn-text {
   background-color: transparent;
   color: #666;
@@ -207,7 +234,15 @@ body {
   color: #333;
 }
 
-/* 메인 컨텐츠 영역 */
+.user-avatar {
+  width: 32px;      
+  height: 32px;     
+  border-radius: 50%; 
+  object-fit: cover;  
+  border: 1px solid #e0e0e0; 
+  margin-right: -4px; 
+}
+
 .main-content {
   width: 100%;
   max-width: 1200px;
@@ -217,7 +252,6 @@ body {
 }
 
 html {
-  /* 스크롤바가 있든 없든 공간을 확보하여 레이아웃 밀림 방지 */
   scrollbar-gutter: stable;
 }
 </style>

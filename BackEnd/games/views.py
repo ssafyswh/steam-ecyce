@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
-from .models import UserGameLibrary, Game, Tag
+from .models import UserGameLibrary, Game, Tag, UserFavoriteGame
 from .serializers import UserGameLibrarySerializer
 from asgiref.sync import async_to_sync, sync_to_async
 from ai_analysis.views import get_search_recommendations
@@ -134,7 +134,6 @@ class GameDetailView(APIView):
                 game.genres = ", ".join(detail['genres'])
                 game.save()
                 
-                
                 # for tag_name in detail['tags']:
                 #     tag, _ = Tag.objects.get_or_create(name=tag_name)
                 #     game.tags.add(tag)
@@ -142,11 +141,20 @@ class GameDetailView(APIView):
         # 플레이타임 계산
         playtime = ''
         is_owned = False
+        is_favorite = False
+
         if request.user.is_authenticated:
             ug = UserGameLibrary.objects.filter(user=request.user, game=game).first()
             if ug: 
                 playtime = ug.playtime_total
                 is_owned = True
+
+            try:
+                fav_record = UserFavoriteGame.objects.get(user=request.user)
+                if fav_record.game and fav_record.game.appid == game.appid:
+                    is_favorite = True
+            except UserFavoriteGame.DoesNotExist:
+                pass
 
         return Response({
             'appid': game.appid,
@@ -157,6 +165,7 @@ class GameDetailView(APIView):
             'price': game.price,
             'playtime_total': playtime,
             'is_owned': is_owned,
+            'is_favorite': is_favorite,
             'genres': game.genres,
             'release_date': game.release_date
         })
@@ -235,3 +244,34 @@ class GameSearchView(APIView):
             "results": results_data,
             "recommendations": recommendations # AI 추천 결과 추가
         }, status=status.HTTP_200_OK)
+
+# 월드컵으로 좋아하는 게임을 저장하고 조회하자!
+class FavoriteGame(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            fav = UserFavoriteGame.objects.get(user=request.user)
+            if fav.game:
+                return Response({'game_id': fav.game.appid})
+            else:
+                return Response({'game_id': None})
+        except UserFavoriteGame.DoesNotExist:
+            return Response({'game_id': None})
+
+    def post(self, request):
+        game_id = request.data.get('game_id')
+        if not game_id:
+            return Response({'error': 'game_id is required'}, status=400)
+
+        # 게임이 실제로 존재하는지 확인
+        game = get_object_or_404(Game, pk=game_id)
+
+        # 유저의 FavoriteGame 객체 가져오기
+        favorite, created = UserFavoriteGame.objects.get_or_create(user=request.user)
+        favorite.game = game
+        favorite.save()
+
+        return Response({'message': 'Favorite game updated', 'game': game.title})
+
+    

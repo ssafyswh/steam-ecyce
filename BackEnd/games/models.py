@@ -49,3 +49,23 @@ class UserGameLibrary(models.Model):
         unique_together = ('user', 'game') # 중복 소유 방지
     def __str__(self):
         return f"{self.user.username}'s {self.game.title}"
+
+class UserFavoriteGame(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name='favorite_game'
+    )
+
+    game = models.ForeignKey(
+        Game,
+        on_delete=models.SET_NULL, # 지우면 NULL로 설정
+        null=True,                 
+        blank=True,
+        related_name='favorited_by_users' # game.favorited_by_users 로 이 게임을 픽한 유저들 조회 가능
+    )
+
+    def __str__(self):
+        game_title = self.game.title if self.game else "Not selected"
+        return f"{self.user.username}'s Best Game: {game_title}"
