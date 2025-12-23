@@ -22,12 +22,19 @@
 
       <h3>✨ Friday's Pick: 추천 게임</h3>
       <div class="rec-grid">
-        <div v-for="(game, index) in result.recommendations" :key="index" class="rec-card">
+        <div 
+          v-for="(game, index) in result.recommendations" 
+          :key="index" 
+          class="rec-card"
+          :class="{ 'ownded-card': game.is_owned }"
+          @click="goToDetail(game.appid)"
+        >
           <div class="card-header">
             <h4>{{ game.title }}</h4>
           </div>
           <div class="card-body">
             <p>{{ game.reason }}</p>
+            <span v-if="game.is_owned" class="sleep-text">💤 라이브러리에서 잠자는 중</span>
           </div>
         </div>
       </div>
@@ -62,7 +69,7 @@
     <!-- 초기 시작 화면 -->
     <div v-else class="start-box">
       <h1>🎮 AI 게임 취향 분석</h1>
-      <p>당신의 스팀 라이브러리 상위 10개 게임을 기반으로<br>나만의 게이머 성향을 분석하고 숨겨진 명작을 추천받으세요.</p>
+      <p>당신의 스팀 라이브러리를 기반으로<br>나만의 게이머 성향을 분석하고 숨겨진 명작을 추천받으세요.</p>
       
       <div class="start-icon">🕵️‍♂️</div>
       
@@ -91,6 +98,14 @@ const formatDate = (dateString) => {
 
 const goBack = () => {
   router.push('/profile');
+};
+
+const goToDetail = (appid) => {
+  if (appid) {
+    router.push(`/game/${appid}`);
+  } else {
+    alert("해당 게임의 상세 정보가 아직 DB에 등록되지 않았습니다.");
+  }
 };
 
 const analyzeGames = async (forceUpdate = false) => {
@@ -203,6 +218,43 @@ button:disabled {
   width: 40px;
   height: 40px;
   border-width: 4px;
+}
+
+/* 보유 중인 게임 카드 강조 스타일 */
+.owned-card {
+  border: 1px solid #66c0f4;
+  background: rgba(102, 192, 244, 0.05);
+}
+
+/* 잠자는 게임 배지 스타일 */
+.sleep-badge {
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  background: #66c0f4;
+  color: #1b2838;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 1;
+}
+
+/* 카드 호버 및 클릭 유도 */
+.rec-card:hover {
+  transform: translateY(-5px);
+  border-color: #66c0f4;
+  cursor: pointer;
+}
+
+.sleep-text {
+  display: block;
+  margin-top: 15px;
+  font-size: 0.85rem;
+  color: #66c0f4;
+  text-align: right;
+  font-weight: bold;
 }
 
 @keyframes spin { 

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="game" class="detail-wrapper">
+  <div v-if="!isLoading && game &&game.title" class="detail-wrapper">
     <div class="banner-section" :style="{ backgroundImage: `url(${game.header_image})` }">
       <div class="banner-overlay"></div>
       <div class="banner-content">
@@ -17,7 +17,6 @@
 
     <div class="content-container">
       <div class="main-column">
-        
         <section class="description-box">
           <h3>게임 소개</h3>
           <div class="description-text" v-html="game.description || '상세 설명이 없습니다.'"></div>
@@ -59,7 +58,7 @@
             <span class="value">{{ game.publisher || '정보 없음' }}</span>
           </div>
           
-          <button @click="$router.push('/profile')" class="back-btn">⬅ 목록으로 돌아가기</button>
+          <button @click="$router.push('/profile')" class="back-btn">⬅ 내 라이브러리로 돌아가기</button>
         </div>
       </div>
     </div>
@@ -72,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth'; // 토큰 사용을 위해 추가
@@ -80,19 +79,44 @@ import { useAuthStore } from '@/stores/auth'; // 토큰 사용을 위해 추가
 const route = useRoute();
 const authStore = useAuthStore();
 const game = ref(null);
+const isLoading = ref(true); // 로딩 상태 추가
+const retryCount = ref(0); // 재시도 횟수 제한
 
 const fetchGameDetail = async () => {
   try {
     // 토큰이 있다면 헤더에 추가해서 내 플레이타임까지 가져오기
     const headers = authStore.token ? { Authorization: `Token ${authStore.token}` } : {};
-    
     const response = await axios.get(`http://localhost:8000/games/${route.params.id}/`, { headers });
     game.value = response.data;
+    
+    if (!game.value || !game.value.title || !game.value.description) {
+      // 정보가 불완전할경우 잠시 후 재실행
+      if (retryCount.value < 10) {
+        retryCount.value++;
+        console.log("LOADING...");
+        setTimeout(() => fetchGameDetail(), 1000);
+      } else {
+        console.error("재시도 횟수 초과");
+        isLoading.value = false;
+        // retryCount.value = 0;
+      }
+      return;
+    }
+    isLoading.value = false;
+    retryCount.value = 0;
   } catch (error) {
     console.error("데이터 로드 실패:", error);
     alert("게임 정보를 가져올 수 없습니다.");
   }
 };
+
+// 페이지 이동 검사
+watch(() => route.params.id, () => {
+  retryCount.value = 0;
+  game.value = null;
+  isLoading.value = true;
+  fetchGameDetail();
+});
 
 onMounted(() => {
   fetchGameDetail();
