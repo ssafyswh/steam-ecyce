@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-from games.models import UserGameLibrary
+from games.models import Game, UserGameLibrary
 from .models import AIAnalysisLog
 from .serializers import AIAnalysisLogSerializer
 
@@ -44,29 +44,52 @@ class GameRecommendationView(APIView):
                 serializer = AIAnalysisLogSerializer(existing_log)
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
-        # 게임 데이터 가져오기
-        top_games = UserGameLibrary.objects.filter(user=user)\
+        # 게임 데이터 가져오기(플레이타임이 0이 아닌 게임들의 전체 목록)
+        filtered_games = UserGameLibrary.objects.filter(user=user, playtime_total__gt=0)\
             .select_related('game')\
-            .order_by('-playtime_total')[:10]
+            # .order_by('-playtime_total')[:10]
         
-        if not top_games.exists():
+        if not filtered_games.exists():
             return Response({"error": "분석할 게임이 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        game_list = [f"{entry.game.title}({int(entry.playtime_total/60)}시간)" for entry in top_games]
-        game_list_str = ", ".join(game_list)
+        owned_titles = [entry.game.title for entry in filtered_games]
+        game_list_str = ", ".join([f"{e.game.title}({int(e.playtime_total/60)}시간)" for e in filtered_games])
         print(f"DEBUG: AI 분석 시작 (새로 생성) - {user}")
 
         try:
             # AI 호출 (비동기 -> 동기)
             result_json = async_to_sync(self.get_ai_analysis)(game_list_str)
             
+            # 추천된 게임이 이미 라이브러리에 있는지 확인
+            all_recs = result_json.get('recommendations', [])
+            valid_recs = []
+            
+            # 유저의 전체 라이브러리 (보유 여부 체크용)
+            owned_appids = set(UserGameLibrary.objects.filter(user=user).values_list('game__appid', flat=True))
+            for rec in all_recs:
+                # ai의 추천 결과를 기반으로 db에서 검색
+                # 완전 일치(iexact) 혹은 포함(icontains)으로 검색
+                db_game = Game.objects.filter(title__iexact=rec['title']).first() or \
+                           Game.objects.filter(title__icontains=rec['title']).first()
+                if db_game:
+                    rec['appid'] = db_game.appid
+                    if db_game.appid in owned_appids:
+                        rec['is_owned'] = True
+                        rec['reason'] = f"{rec['reason']} (이 게임은 이미 라이브러리에서 잠자고 있어요!)"
+                    else:
+                        rec['is_owned'] = False
+                    # db 검색 성공(유효) 결과만 저장 
+                    valid_recs.append(rec)
+                if len(valid_recs) >= 3:
+                    break
+
             # 결과 DB에 저장
-            log, created = AIAnalysisLog.objects.update_or_create(
+            log, _ = AIAnalysisLog.objects.update_or_create(
                 user=user,
                 defaults={
                     'gamer_type': result_json.get('gamer_type'),
                     'analysis_text': result_json.get('analysis'),
-                    'recommendations': result_json.get('recommendations'),
+                    'recommendations': valid_recs,
                 }
             )
             
@@ -80,7 +103,9 @@ class GameRecommendationView(APIView):
         client = get_ai_client()
         system_prompt = (
             "당신은 'Friday'라는 이름의 AI 게임 분석가입니다. 긍정적이고 활기찬 말투를 쓰세요. "
-            "유저의 게임 목록을 보고 성향을 분석한 뒤, 추천 게임 3개를 골라주세요. "
+            "유저의 게임 목록을 보고 성향을 분석한 뒤, 추천 게임 7개를 골라주세요. "
+            "반드시 보유한 게임 목록에 없는 새로운 게임을 추천해주세요. "
+            "게임의 제목은 반드시 제공된 게임 목록의 제목 형식을 참고해서 똑같이 작성해주세요. "
             "반드시 아래의 JSON 형식으로만 답변해야 합니다.\n"
             "{\n"
             "  \"gamer_type\": \"한 줄 요약\",\n"
@@ -89,6 +114,10 @@ class GameRecommendationView(APIView):
             "    {\"title\": \"게임명1\", \"reason\": \"추천 이유1\"},\n"
             "    {\"title\": \"게임명2\", \"reason\": \"추천 이유2\"},\n"
             "    {\"title\": \"게임명3\", \"reason\": \"추천 이유3\"}\n"
+            "    {\"title\": \"게임명4\", \"reason\": \"추천 이유4\"}\n"
+            "    {\"title\": \"게임명5\", \"reason\": \"추천 이유5\"}\n"
+            "    {\"title\": \"게임명6\", \"reason\": \"추천 이유6\"}\n"
+            "    {\"title\": \"게임명7\", \"reason\": \"추천 이유7\"}\n"
             "  ]\n"
             "}"
         )

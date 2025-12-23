@@ -118,7 +118,7 @@ class GameDetailView(APIView):
 
         # 정보가 갱신된지 하루 이상이 지났을 경우 재갱신
         now = timezone.now()
-        if not game.header_image or (game.updated_at and now - game.updated_at > timedelta(days=1)):
+        if not game.description or (game.updated_at and now - game.updated_at > timedelta(days=1)):
             print(f"🔄 {game.title} 상세 정보 업데이트 중...")
             detail = fetch_game_detail_internal(appid)
             if detail:
