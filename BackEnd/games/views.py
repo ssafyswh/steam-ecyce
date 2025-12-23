@@ -2,6 +2,7 @@
 import requests
 from datetime import datetime, timedelta
 from django.conf import settings
+from django.db.models import Case, When, Value, IntegerField
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -162,25 +163,34 @@ class GameSearchView(APIView):
     def get(self, request):
         query = request.GET.get('q', '').strip()
         limit = request.GET.get('limit') # limit 파라미터 받기 (예: 20)
+        offset = request.GET.get('offset', 0)
         
         if not query:
             return Response({"error": "검색어를 입력해주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. 검색 쿼리셋 생성
-        games_queryset = Game.objects.filter(title__icontains=query)
+        # 검색 쿼리셋 생성
+        games_queryset = Game.objects.filter(title__icontains=query).annotate(
+            search_priority=Case(
+                When(title__istartswith=query, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by('search_priority', 'title')
         
-        # 2. 전체 개수 계산 (매우 중요: 잘라내기 전에 세어야 함)
+        # 전체 개수 계산 (매우 중요: 잘라내기 전에 세어야 함)
         total_count = games_queryset.count()
 
-        # 3. 리밋이 있으면 자르기 (프리뷰용)
-        if limit:
-            try:
+        # 리밋이 있으면 자르기 (프리뷰용)
+        
+        try:
+            offset_int = int(offset)
+            if limit:
                 limit_int = int(limit)
-                games_queryset = games_queryset[:limit_int]
-            except ValueError:
-                pass # limit가 숫자가 아니면 무시하고 전체 리턴
+                games_queryset = games_queryset[offset_int: offset_int + limit_int]
+        except ValueError:
+            pass # limit가 숫자가 아니면 무시하고 전체 리턴
 
-        # 4. 데이터 직렬화
+        # 데이터 직렬화
         data = [
             {
                 "appid": game.appid,
@@ -191,7 +201,7 @@ class GameSearchView(APIView):
             for game in games_queryset
         ]
         
-        # 5. 응답 구조 변경: 개수와 리스트를 분리
+        # 응답 구조 변경: 개수와 리스트를 분리
         return Response({
             "count": total_count,
             "results": data
