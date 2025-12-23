@@ -102,7 +102,7 @@ const goBack = () => {
 
 const goToDetail = (appid) => {
   if (appid) {
-    router.push(`game/${appid}`);
+    router.push(`/game/${appid}`);
   } else {
     alert("해당 게임의 상세 정보가 아직 DB에 등록되지 않았습니다.");
   }
