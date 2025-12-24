@@ -1,6 +1,6 @@
 <template>
     <div>
-        커커뮤니티
+        게시글 디테일 페이지
     </div>
 </template>
 
