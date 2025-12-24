@@ -2,11 +2,6 @@
 from django.db import models
 from django.conf import settings
 
-class Tag(models.Model):
-    # 생성된 태그들을 모두 모아놓는 테이블
-    name = models.CharField(max_length=20, unique=True)
-    def __str__(self):
-        return self.name
 
 class Game(models.Model):
     appid = models.BigIntegerField(primary_key=True)
@@ -19,7 +14,6 @@ class Game(models.Model):
     genres = models.CharField(max_length=255, null=True, blank=True)
 
     # 다대다 관계 설정
-    tags = models.ManyToManyField(Tag, related_name='games')
     owners = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through='UserGameLibrary',

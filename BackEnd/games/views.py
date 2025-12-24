@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import status
-from .models import UserGameLibrary, Game, Tag, UserFavoriteGame
+from .models import UserGameLibrary, Game, UserFavoriteGame
 from .serializers import UserGameLibrarySerializer
 from asgiref.sync import async_to_sync, sync_to_async
 from ai_analysis.views import get_search_recommendations
