@@ -7,7 +7,7 @@ def fetch_steam_reviews(appid):
     스팀 API에서 해당 게임의 한국어 리뷰를 수집
     """
     # language=korean을 통해 한국어 리뷰 우선 수집
-    url = f"https://store.steampowered.com/appreviews/{appid}?json=1&language=korean&num_per_page=30"
+    url = f"https://store.steampowered.com/appreviews/{appid}?json=1&language=korean&num_per_page=30&purchase_type=all"
     try:
         response = requests.get(url)
         if response.status_code == 200:
@@ -45,7 +45,8 @@ async def get_ai_review_summary(reviews):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format={ "type": "json_object" }
+            response_format={ "type": "json_object" },
+            # max_completion_tokens = 300
         )
         
         result = json.loads(response.choices[0].message.content)
