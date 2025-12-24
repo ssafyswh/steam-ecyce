@@ -19,7 +19,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
     def perform_create(self, serializer):
         # [수정] get_object_hash_or_404 -> get_object_or_404 (오타 수정)

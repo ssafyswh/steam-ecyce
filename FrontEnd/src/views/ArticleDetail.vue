@@ -59,31 +59,37 @@
     </div>
   </div>
   <div v-else class="login-prompt">
-    <p>댓글을 작성하려면 <router-link :to="{ name: 'Login' }">로그인</router-link>이 필요합니다.</p>
+    <p>댓글을 작성하려면 <router-link :to="{ name: 'login' }">로그인</router-link>이 필요합니다.</p>
   </div>
 
   <div class="comment-list">
     <div v-if="article.comments?.length === 0" class="no-comments">
       첫 번째 댓글을 남겨보세요!
     </div>
-    <div 
-      v-for="comment in article.comments" 
-      :key="comment.id" 
-      class="comment-item"
-    >
+    <div v-for="comment in article.comments" :key="comment.id" class="comment-item">
       <img :src="comment.user_avatar || '/default-avatar.png'" class="comment-avatar" />
+      
       <div class="comment-content-area">
         <div class="comment-info">
-          <span class="comment-author">{{ comment.user_nickname }}</span>
-          <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
+        <span class="comment-author">{{ comment.user_nickname }}</span>
+        <span class="comment-date">{{ formatDate(comment.created_at) }}</span>
         </div>
-        <p class="comment-text">{{ comment.content }}</p>
+
+        <div v-if="editingCommentId === comment.id" class="edit-mode-area">
+        <textarea v-model="editContent" rows="2" class="edit-textarea"></textarea>
+        <div class="edit-actions">
+            <button @click="updateComment(comment.id)" class="btn-save">저장</button>
+            <button @click="cancelEdit" class="btn-cancel">취소</button>
+        </div>
+        </div>
+
+        <p v-else class="comment-text">{{ comment.content }}</p>
       </div>
-      <button 
-        v-if="authStore.user?.pk === comment.user" 
-        @click="deleteComment(comment.id)" 
-        class="btn-comment-delete"
-      >삭제</button>
+
+      <div v-if="authStore.user && Number(authStore.user.id || authStore.user.pk) === Number(comment.user)" class="comment-btn-group">
+        <button v-if="editingCommentId !== comment.id" @click="enterEditMode(comment)" class="btn-comment-action">수정</button>
+        <button @click="deleteComment(comment.id)" class="btn-comment-action del">삭제</button>
+      </div>
     </div>
   </div>
 </section>
@@ -113,13 +119,22 @@ const authStore = useAuthStore();
 const article = ref(null);
 const loading = ref(true);
 const newComment = ref('');
+const editingCommentId = ref(null); // 현재 수정 중인 댓글의 ID
+const editContent = ref(''); // 수정할 댓글 내용
 
 // [계산된 속성] 작성자 본인 여부 확인 (PK 비교)
 const isAuthor = computed(() => {
-  if (!authStore.user || !article.value) return false;
+  // 1. 데이터가 로딩 중이거나, 로그인 정보가 없거나, 게시글 정보가 없으면 무조건 false
+  if (!authStore.user || !article.value) {
+    return false;
+  }
 
-  const currentUserId = authStore.user.id || authStore.user.pk;
-  const articleAuthorId = article.value.user;
+  // 2. 안전하게 ID 값을 가져옴 (옵셔널 체이닝 ?. 사용)
+  const currentUserId = authStore.user?.id || authStore.user?.pk;
+  const articleAuthorId = article.value?.user;
+
+  // 3. 둘 다 존재할 때만 비교 수행
+  if (!currentUserId || !articleAuthorId) return false;
 
   return Number(currentUserId) === Number(articleAuthorId);
 });
@@ -196,6 +211,37 @@ const submitComment = async () => {
   } catch (error) {
     console.error('댓글 등록 에러:', error);
     alert('댓글 등록에 실패했습니다.');
+  }
+};
+
+// 댓글 수정 진입
+const enterEditMode = (comment) => {
+  editingCommentId.value = comment.id;
+  editContent.value = comment.content;
+};
+
+// 댓글 수정 취소
+const cancelEdit = () => {
+  editingCommentId.value = null;
+  editContent.value = '';
+};
+
+// 댓글 수정 실행
+const updateComment = async (commentId) => {
+  if (!editContent.value.trim()) return;
+
+  try {
+    await axios.patch(`http://localhost:8000/community/comments/${commentId}/`, {
+      content: editContent.value
+    }, {
+      headers: { Authorization: `Token ${authStore.token}` }
+    });
+    
+    editingCommentId.value = null; // 수정 모드 해제
+    await fetchArticleDetail(); // 목록 갱신
+  } catch (error) {
+    console.error('댓글 수정 실패:', error);
+    alert('댓글 수정 권한이 없거나 실패했습니다.');
   }
 };
 
@@ -525,6 +571,17 @@ onMounted(fetchArticleDetail);
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
 }
+
+.edit-mode-area { margin-top: 10px; }
+.edit-textarea { width: 100%; border: 1px solid #42b883; border-radius: 4px; padding: 8px; }
+.edit-actions { display: flex; gap: 5px; justify-content: flex-end; margin-top: 5px; }
+.btn-save { background: #42b883; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+.btn-cancel { background: #94a3b8; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+
+.comment-btn-group { display: flex; gap: 8px; font-size: 0.8rem; }
+.btn-comment-action { background: none; border: none; color: #94a3b8; cursor: pointer; }
+.btn-comment-action:hover { text-decoration: underline; color: #334155; }
+.btn-comment-action.del:hover { color: #e11d48; }
 
 @keyframes spin {
   0% { transform: rotate(0deg); }

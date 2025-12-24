@@ -1,4 +1,4 @@
-// router/indexedDB.js
+// router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import SteamCallback from '../views/SteamCallback.vue'
