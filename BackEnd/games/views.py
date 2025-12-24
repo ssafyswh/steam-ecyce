@@ -13,7 +13,33 @@ from .models import UserGameLibrary, Game, Tag, UserFavoriteGame
 from .serializers import UserGameLibrarySerializer
 from asgiref.sync import async_to_sync, sync_to_async
 from ai_analysis.views import get_search_recommendations
+from ai_analysis.models import ReviewSummary
+from ai_analysis.utils import fetch_steam_reviews, get_ai_review_summary
 
+def get_or_create_review_summary(game):
+    # 1. 이미 완료된 요약이 있는지 확인
+    summary, created = ReviewSummary.objects.get_or_create(game=game)
+    
+    if created or summary.status != 'COMPLETED':
+        summary.status = 'PROCESSING'
+        summary.save()
+        
+        # 2. 스팀 리뷰 크롤링
+        reviews = fetch_steam_reviews(game.appid)
+        
+        if reviews:
+            # 3. AI 분석 실행 (자연스러운 문단 생성)
+            ai_text = async_to_sync(get_ai_review_summary)(reviews)
+            
+            # 4. DB 저장
+            summary.summary_text = ai_text
+            summary.status = 'COMPLETED'
+            summary.save()
+        else:
+            summary.status = 'FAILED'
+            summary.save()
+            
+    return summary
 
 # [중요] 이 함수는 다른 뷰에서도 쓸 수 있게 클래스 밖으로 뺐습니다.
 def fetch_game_detail_internal(appid):
@@ -137,6 +163,10 @@ class GameDetailView(APIView):
                 # for tag_name in detail['tags']:
                 #     tag, _ = Tag.objects.get_or_create(name=tag_name)
                 #     game.tags.add(tag)
+                
+        from .serializers import GameSerializer
+        serializer = GameSerializer(game)
+        data = serializer.data
 
         # 플레이타임 계산
         playtime = ''
@@ -155,20 +185,13 @@ class GameDetailView(APIView):
                     is_favorite = True
             except UserFavoriteGame.DoesNotExist:
                 pass
-
-        return Response({
-            'appid': game.appid,
-            'title': game.title,
-            'header_image': game.header_image,
-            'description': game.description,
-            'publisher': game.publisher,
-            'price': game.price,
+            
+        data.update({
             'playtime_total': playtime,
             'is_owned': is_owned,
             'is_favorite': is_favorite,
-            'genres': game.genres,
-            'release_date': game.release_date
         })
+        return Response(data)
     
 ''' 
 Django ORM은 기본적으로 동기 방식이므로 비동기 뷰(async def) 안에서 DB를 조회하려면
@@ -273,5 +296,67 @@ class FavoriteGame(APIView):
         favorite.save()
 
         return Response({'message': 'Favorite game updated', 'game': game.title})
+    
+    
+class AnalyzeGameReviewsView(APIView):
+    def post(self, request, appid):
+        try:
+            # 1. 대상 게임 찾기
+            game = Game.objects.get(appid=appid)
+            
+            # 2. ReviewSummary 객체 가져오거나 생성
+            summary, created = ReviewSummary.objects.get_or_create(game=game)
+            
+            # 잦은 api 호출 제한!
+            if not created and summary.status == 'COMPLETED':
+                time_diff = timezone.now() - summary.last_updated_at
+                if time_diff < timedelta(minutes=30):
+                    # 30분이 지나지 않았다면 기존 데이터를 그대로 반환
+                    return Response({
+                        "message": "최근 30분 이내에 분석된 데이터가 있습니다.",
+                        "data": self.serialize_summary(summary)
+                    }, status=status.HTTP_200_OK)
+            
+            # 3. 상태 업데이트 (이미 완료된 상태여도 재분석 요청이 오면 다시 실행)
+            summary.status = 'PROCESSING'
+            summary.save()
+            
+            # 4. 리뷰 수집 (utils.py 함수 사용)
+            reviews = fetch_steam_reviews(appid)
+            
+            if not reviews:
+                summary.status = 'FAILED'
+                summary.summary_text = "스팀에 등록된 유저 리뷰가 부족하여 분석할 수 없습니다."
+                summary.save()
+                return Response(self.serialize_summary(summary), status=status.HTTP_200_OK)
+
+            # 5. AI 분석 실행 (비동기 함수를 동기적으로 호출)
+            # 텍스트만 리스트 형식 없이 하나의 문단으로 받아옴
+            ai_text = async_to_sync(get_ai_review_summary)(reviews)
+            
+            # 6. 결과 저장 및 상태 완료
+            summary.summary_text = ai_text
+            summary.status = 'COMPLETED'
+            summary.save()
+            
+            return Response(self.serialize_summary(summary), status=status.HTTP_200_OK)
+
+        except Game.DoesNotExist:
+            return Response({"error": "게임 정보를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"🚨 분석 에러: {str(e)}")
+            if 'summary' in locals():
+                summary.status = 'FAILED'
+                summary.save()
+            return Response({"error": "분석 중 오류가 발생했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def serialize_summary(self, summary):
+        """ReviewSummary 모델 데이터를 사전형으로 변환"""
+        return {
+            "status": summary.status,
+            "summary_text": summary.summary_text,
+            "last_updated_at": summary.last_updated_at,
+            "tokens_used": summary.tokens_used
+        }
 
     

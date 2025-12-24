@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import SteamLibrary, GameDetailView, GameSearchView, FavoriteGame
+from .views import SteamLibrary, GameDetailView, GameSearchView, FavoriteGame, AnalyzeGameReviewsView
 
 urlpatterns = [
     # 내 라이브러리 (목록 및 동기화)
@@ -13,4 +13,6 @@ urlpatterns = [
     
     # 좋아하는 게임 정보 등록
     path('favorite/', FavoriteGame.as_view(), name='favorite'),
+    
+    path('<int:appid>/analyze-reviews/', AnalyzeGameReviewsView.as_view(), name='analyze-game-reviews'),
 ]
