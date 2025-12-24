@@ -5,7 +5,7 @@
       <div class="loading-box">
         <div class="spinner"></div>
         <p>스팀 라이브러리를 동기화 중입니다...</p>
-        <span>잠시만 기다려주세요 (약 1분 정도 소요됩니다.)</span>
+        <span>잠시만 기다려주세요 (최초 동기화 시 약 1분 정도 소요됩니다.)</span>
       </div>
     </div>
 
