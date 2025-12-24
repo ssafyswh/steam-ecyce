@@ -8,7 +8,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Articles.objects.all().order_by('-created_at')
     serializer_class = ArticleSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
+    
     # ModelViewSet에서 저장 로직을 커스텀할 때는 perform_create를 씁니다.
     def perform_create(self, serializer):
         print('저장 시도 - perform_create 실행')

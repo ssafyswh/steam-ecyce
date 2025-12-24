@@ -104,8 +104,7 @@ const submitForm = async () => {
   
   // [중요] Django Serializer 필드명이 'content'라면 여기도 'content'여야 합니다.
   // 보내는 키값('article')이 모델/시리얼라이저 필드명과 일치하는지 꼭 확인하세요!
-  // 보통 모델 필드가 content라면 아래처럼 수정해야 합니다.
-  formData.append('content', content.value); 
+  formData.append('article', content.value); 
   // 만약 모델 필드명이 article이라면 기존대로 'article' 유지: formData.append('article', content.value);
 
   if (gameId.value) {
