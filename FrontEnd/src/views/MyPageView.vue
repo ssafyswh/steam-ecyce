@@ -26,8 +26,10 @@
       <section class="card fav-card">
         <h2>🏆 나의 최애 게임</h2>
         <div v-if="profileData.favorite_game" class="card-body">
-          <img :src="profileData.favorite_game.header_image" class="game-img" />
-          <p class="game-name">{{ profileData.favorite_game.title }}</p>
+          <router-link :to="{ name: 'GameDetail', params: { id: profileData.favorite_game.appid } }" class="game-link">
+            <img :src="profileData.favorite_game.header_image" class="game-img" />
+            <p class="game-name">{{ profileData.favorite_game.title }}</p>
+          </router-link>
         </div>
         <div v-else class="empty-state">월드컵을 통해 최애 게임을 선정해 보세요!</div>
       </section>
@@ -56,11 +58,74 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.mypage-container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; color: #e5e5e5; }
-.page-header { color: #166c9e; margin-bottom: 30px; border-bottom: 2px solid #2a475e; padding-bottom: 15px; }
-.user-title span { color: #66c0f4; font-weight: bold; }
-.dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
-.card { background: #1b2838; border-radius: 8px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-.type-highlight { color: #42b883; margin-bottom: 15px; }
-.game-img { width: 100%; border-radius: 5px; margin-bottom: 10px; }
+.mypage-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  color: #e5e5e5;
+}
+
+.page-header {
+  color: #166c9e;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #2a475e;
+  padding-bottom: 15px;
+}
+
+.user-title span {
+  color: #66c0f4;
+  font-weight: bold;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 30px;
+}
+
+.card {
+  background: #1b2838;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.type-highlight {
+  color: #42b883;
+  margin-bottom: 15px;
+}
+
+.game-img {
+  width: 100%;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.game-link {
+  text-decoration: none;
+  /* 기본 상태와 방문 후 상태 모두 하얀색으로 고정 */
+  color: #ffffff !important; 
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+/* 방문한 적이 있는 링크도 하얀색으로 유지 */
+.game-link:visited {
+  color: #ffffff !important;
+}
+
+/* 호버 시에만 약간의 변화를 주고 싶다면 (선택 사항) */
+.game-link:hover {
+  transform: scale(1.03);
+  color: #66c0f4 !important; /* 호버 시에만 스팀 하늘색으로 강조 */
+}
+
+.game-name {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 10px;
+  /* 부모인 .game-link의 색상을 따라가도록 설정 */
+  color: inherit; 
+}
 </style>
