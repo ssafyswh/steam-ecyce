@@ -3,7 +3,7 @@
   <div class="layout-wrapper">
     <header class="navbar">
       <div class="navbar-container">
-        
+
         <div class="nav-left">
           <router-link to="/" class="logo">Steam Ecyce</router-link>
 
@@ -12,6 +12,9 @@
             <router-link to="/community" class="nav-link">커뮤니티</router-link>
             <router-link to="/gameinfo" class="nav-link">게임 정보</router-link>
             <router-link to="/worldcup" class="nav-link">월드컵</router-link>
+            <router-link v-if="authStore.isAuthenticated" to="/library" class="nav-link">
+              라이브러리
+            </router-link>
           </nav>
         </div>
 
@@ -19,24 +22,18 @@
         <div class="nav-right">
           <!-- 조건을 'isAuthenticated' 하나만 봄 -->
           <div v-if="authStore.isAuthenticated" class="user-actions">
+            <img v-if="authStore.user && authStore.user.avatar" :src="authStore.user.avatar" alt="User Avatar"
+              class="user-avatar" />
 
-            <!-- 아바타 이미지 -->
-            <img 
-              v-if="authStore.user && authStore.user.avatar" 
-              :src="authStore.user.avatar" 
-              alt="User Avatar" 
-              class="user-avatar"
-            />
-            
-            <!-- 닉네임 부분 -->
-            <span class="welcome-msg">
-              <b v-if="authStore.user">{{ authStore.user.nickname }}</b>
-              <span v-else>...</span>
-              님
+            <span class="welcome-text">
+              <router-link to="/mypage" class="nickname-box">
+                <b v-if="authStore.user">{{ authStore.user.nickname }}</b>
+                <span v-else>...</span>
+              </router-link>
+              <span class="suffix-text">님</span>
             </span>
 
-            <button class="btn btn-primary" @click="goToProfile">내 라이브러리</button>
-            <button class="btn btn-text" @click="handleLogout">로그아웃</button>
+            <button @click="handleLogout" class="btn btn-outline logout-btn">로그아웃</button>
           </div>
 
           <!-- 로그아웃 상태 -->
@@ -96,7 +93,7 @@ const handleSteamLogin = async () => {
         if (event.origin !== window.location.origin) return;
         if (event.data === 'steam-login-success') {
           window.removeEventListener('message', onMessage);
-          await authStore.initialize(); 
+          await authStore.initialize();
         }
       });
     }
@@ -140,7 +137,8 @@ body {
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
-  justify-content: space-between; /* 양 끝 정렬 */
+  justify-content: space-between;
+  /* 양 끝 정렬 */
   align-items: center;
 }
 
@@ -148,7 +146,8 @@ body {
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 32px; /* 로고와 메뉴 사이 간격 */
+  gap: 32px;
+  /* 로고와 메뉴 사이 간격 */
 }
 
 /* 로고 스타일 */
@@ -163,7 +162,8 @@ body {
 /* [추가] 네비게이션 메뉴 스타일 */
 .nav-menu {
   display: flex;
-  gap: 20px; /* 메뉴 아이템 간 간격 */
+  gap: 20px;
+  /* 메뉴 아이템 간 간격 */
 }
 
 /* [추가] 개별 메뉴 링크 스타일 */
@@ -176,7 +176,8 @@ body {
 }
 
 .nav-link:hover {
-  color: #42b883; /* 호버 시 색상 변경 (Primary Color) */
+  color: #42b883;
+  /* 호버 시 색상 변경 (Primary Color) */
 }
 
 /* (선택사항) 현재 활성화된 라우트 스타일 */
@@ -236,12 +237,12 @@ body {
 }
 
 .user-avatar {
-  width: 32px;      
-  height: 32px;     
-  border-radius: 50%; 
-  object-fit: cover;  
-  border: 1px solid #e0e0e0; 
-  margin-right: -4px; 
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e0e0e0;
+  margin-right: -4px;
 }
 
 .main-content {
@@ -254,5 +255,51 @@ body {
 
 html {
   scrollbar-gutter: stable;
+}
+
+.welcome-text {
+  display: flex;
+  align-items: center;
+  gap: 4px; /* 박스와 "님 환영합니다" 사이의 간격 */
+  font-size: 0.95rem;
+  color: #c1c7d0; /* 밝은 회색 톤으로 문장 색상 유지 */
+}
+
+.nickname-box {
+  display: inline-block;
+  background-color: #3d4450; /* 버튼 느낌의 배경색 */
+  color: #ffffff !important;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  border: 1px solid #4f5864;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+/* 마우스를 올렸을 때의 효과 */
+.nickname-box:hover {
+  background-color: #4b5463;
+  border-color: #66c0f4; /* 스팀 하늘색으로 포인트 */
+  color: #66c0f4 !important;
+  box-shadow: 0 0 8px rgba(102, 192, 244, 0.3);
+}
+
+.suffix-text {
+  margin-left: 2px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #42b883;
+}
+
+.logout-btn {
+  margin-left: 15px;
+  padding: 5px 12px;
+  font-size: 0.85rem;
 }
 </style>
