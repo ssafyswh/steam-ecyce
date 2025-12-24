@@ -5,7 +5,10 @@
       <div class="navbar-container">
 
         <div class="nav-left">
-          <router-link to="/" class="logo">Steam Ecyce</router-link>
+          <router-link to="/" class="logo">
+            <span class="logo-steam">Steam</span>
+            <span class="logo-ecyce">Ecyce</span>
+          </router-link>
 
           <!-- 네비게이션 메뉴 추가 -->
           <nav class="nav-menu">
@@ -104,7 +107,11 @@ const handleSteamLogin = async () => {
 </script>
 
 <style>
-/* 전역 스타일 초기화 */
+/* Reset & Global Base */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -113,17 +120,27 @@ body {
   color: #333333;
 }
 
+/* 레이아웃 */
 .layout-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+.main-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* navbar */
 .navbar {
   width: 100%;
   height: 60px;
-  border-bottom: 1px solid #eaeaea;
   background-color: #ffffff;
+  border-bottom: 1px solid #eaeaea;
   display: flex;
   align-items: center;
   position: sticky;
@@ -138,35 +155,52 @@ body {
   padding: 0 20px;
   display: flex;
   justify-content: space-between;
-  /* 양 끝 정렬 */
   align-items: center;
 }
 
-/* [추가] 왼쪽 영역 (로고 + 메뉴) 그룹화 */
-.nav-left {
+.nav-left, .nav-right, .user-actions {
   display: flex;
   align-items: center;
-  gap: 32px;
-  /* 로고와 메뉴 사이 간격 */
 }
 
-/* 로고 스타일 */
+.nav-left { gap: 32px; }
+.nav-right { gap: 16px; }
+.user-actions { gap: 12px; }
+
+/* 사이트 로고 */
 .logo {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   text-decoration: none;
-  letter-spacing: -0.5px;
+  transition: opacity 0.2s;
 }
 
-/* [추가] 네비게이션 메뉴 스타일 */
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logo-steam {
+  color: #171a21;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: -1px;
+  text-shadow: 1px 1px 0px #dcdcdc;
+}
+
+.logo-ecyce {
+  color: #66c0f4;
+  font-weight: 400;
+  font-size: 1.4rem;
+  letter-spacing: -1px;
+}
+
+/* navbar 메뉴 */
 .nav-menu {
   display: flex;
   gap: 20px;
-  /* 메뉴 아이템 간 간격 */
 }
 
-/* [추가] 개별 메뉴 링크 스타일 */
 .nav-link {
   text-decoration: none;
   color: #666;
@@ -175,45 +209,65 @@ body {
   transition: color 0.2s;
 }
 
-.nav-link:hover {
-  color: #42b883;
-  /* 호버 시 색상 변경 (Primary Color) */
-}
-
-/* (선택사항) 현재 활성화된 라우트 스타일 */
+.nav-link:hover,
 .router-link-active.nav-link {
   color: #42b883;
+}
+
+.router-link-active.nav-link {
   font-weight: 600;
 }
 
-/* 우측 메뉴 영역 */
-.nav-right {
+/* 사용자 정보 */
+.welcome-text {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.user-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.welcome-msg {
+  gap: 2px;
   font-size: 0.95rem;
-  color: #555;
-  margin-right: 8px;
+  color: #4a4a4a;
 }
 
+.nickname-box {
+  display: inline-block;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  color: #171a21 !important;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+
+.nickname-box:hover {
+  color: #66c0f4 !important;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.suffix-text {
+  font-weight: 500;
+  color: #333333; /* '님' 글자색을 더 진하게 설정 */
+  margin-left: 1px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  object-fit: cover;
+}
+
+/* 버튼 */
 .btn {
   padding: 8px 16px;
   font-size: 0.9rem;
   border-radius: 6px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background-color 0.2s;
-  border: none;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
   display: inline-block;
 }
 
@@ -226,80 +280,17 @@ body {
   background-color: #3aa876;
 }
 
-.btn-text {
-  background-color: transparent;
-  color: #666;
-}
-
-.btn-text:hover {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #e0e0e0;
-  margin-right: -4px;
-}
-
-.main-content {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  box-sizing: border-box;
-}
-
-html {
-  scrollbar-gutter: stable;
-}
-
-.welcome-text {
-  display: flex;
-  align-items: center;
-  gap: 4px; /* 박스와 "님 환영합니다" 사이의 간격 */
-  font-size: 0.95rem;
-  color: #c1c7d0; /* 밝은 회색 톤으로 문장 색상 유지 */
-}
-
-.nickname-box {
-  display: inline-block;
-  background-color: #3d4450; /* 버튼 느낌의 배경색 */
-  color: #ffffff !important;
-  padding: 4px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-  border: 1px solid #4f5864;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-/* 마우스를 올렸을 때의 효과 */
-.nickname-box:hover {
-  background-color: #4b5463;
-  border-color: #66c0f4; /* 스팀 하늘색으로 포인트 */
-  color: #66c0f4 !important;
-  box-shadow: 0 0 8px rgba(102, 192, 244, 0.3);
-}
-
-.suffix-text {
-  margin-left: 2px;
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  border: 1px solid #42b883;
-}
-
 .logout-btn {
   margin-left: 15px;
   padding: 5px 12px;
   font-size: 0.85rem;
+  background-color: transparent;
+  border: 1px solid #eaeaea;
+  color: #666;
+}
+
+.logout-btn:hover {
+  background-color: #f5f5f5;
+  color: #333;
 }
 </style>
