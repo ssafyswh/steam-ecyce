@@ -17,6 +17,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     user_avatar = serializers.ReadOnlyField(source='user.avatar')
     game_title = serializers.ReadOnlyField(source='game.title')
     game_image = serializers.ReadOnlyField(source='game.header_image')
+    game_id = serializers.IntegerField(write_only=True)
     
     # 해당 게시글에 달린 댓글 목록을 포함 (선택 사항)
     comments = CommentSerializer(many=True, read_only=True)
@@ -27,7 +28,8 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
         fields = [
             'id', 'user', 'user_nickname', 'user_avatar', 
-            'title', 'content', 'game_title', 'game_image', 
+            'title', 'content', 
+            'game_id', 'game_title', 'game_image', 
             'comments', 'comment_count', 'created_at', 'updated_at'
         ]
         read_only_fields = ('user',)

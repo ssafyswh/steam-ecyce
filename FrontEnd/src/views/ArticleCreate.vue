@@ -84,9 +84,9 @@ const submitForm = async () => {
   const payload = {
     title: `[인생게임] ${gameInfo.value.title}`, // 앞에 말머리를 붙여 구분감을 줄 수도 있습니다
     content: content.value,
-    game_id: gameInfo.value.id
+    game_id: Number(gameInfo.value.id),
   };
-
+  console.log('디버깅!!!!!!', gameInfo.value, gameInfo)
   try {
     await axios.post('http://localhost:8000/community/articles/', payload, {
       headers: { Authorization: `Token ${authStore.token}` },

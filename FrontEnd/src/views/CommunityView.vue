@@ -63,18 +63,13 @@ const fetchArticles = async () => {
   try {
     const response = await axios.get('http://localhost:8000/community/articles/');
     // DRF Pagination을 쓰는 경우 response.data.results, 아니면 response.data
-    articles.value = response.data.results || response.data; 
+    articles.value = response.data.results || response.data;
+    console.log(response.data, response.data.results) 
   } catch (error) {
     console.error('게시글 로드 실패:', error);
   } finally {
     loading.value = false;
   }
-};
-
-const goToCreate = () => {
-  // 그냥 글쓰기 버튼을 눌렀을 때는 월드컵 페이지로 보내는 것이 
-  // 우리 기획(우승작 공유)에 더 맞을 수 있습니다.
-  router.push({ name: 'Worldcup' }); 
 };
 
 const goToDetail = (id) => {
