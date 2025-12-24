@@ -4,11 +4,12 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404  # [추가] get_object_or_404 필요
 from .models import Article, Comment
 from .serializers import ArticleSerializer, CommentSerializer
+from .permissions import IsAuthorOrReadOnly
 
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all().order_by('-created_at')
     serializer_class = ArticleSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     
     # ModelViewSet에서 저장 로직을 커스텀할 때는 perform_create를 씁니다.
     def perform_create(self, serializer):

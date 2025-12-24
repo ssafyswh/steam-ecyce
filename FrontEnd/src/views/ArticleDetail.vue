@@ -116,7 +116,12 @@ const newComment = ref('');
 
 // [계산된 속성] 작성자 본인 여부 확인 (PK 비교)
 const isAuthor = computed(() => {
-  return authStore.user && article.value && authStore.user.pk === article.value.user;
+  if (!authStore.user || !article.value) return false;
+
+  const currentUserId = authStore.user.id || authStore.user.pk;
+  const articleAuthorId = article.value.user;
+
+  return Number(currentUserId) === Number(articleAuthorId);
 });
 
 const fetchArticleDetail = async () => {
@@ -146,6 +151,7 @@ const goToProfile = (userId) => {
   console.log(`${userId}번 유저 프로필로 이동`);
 };
 
+
 // 게시글 삭제 로직
 const deleteArticle = async () => {
   if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
@@ -164,8 +170,11 @@ const deleteArticle = async () => {
 };
 
 const editArticle = () => {
-  // router.push({ name: 'ArticleUpdate', params: { id: article.value.id } });
-  alert('수정 기능 준비 중입니다.');
+  // 수정 페이지로 이동하며 현재 게시글의 ID를 넘김
+  router.push({ 
+    name: 'ArticleUpdate', 
+    params: { id: article.value.id } 
+  });
 };
 
 // 댓글 등록 로직

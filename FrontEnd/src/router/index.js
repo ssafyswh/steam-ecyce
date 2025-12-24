@@ -12,6 +12,7 @@ import WorldcupView from '@/views/WorldcupView.vue'
 import CommunityView from '@/views/CommunityView.vue'
 import ArticleCreate from '@/views/ArticleCreate.vue'
 import ArticleDetail from '@/views/ArticleDetail.vue'
+import ArticleUpdate from '@/views/ArticleUpdate.vue'
 import LibraryView from '@/views/LibraryView.vue' // 기존 ProfileView의 이름을 변경했다고 가정
 import MyPageView from '@/views/MyPageView.vue'
 
@@ -84,6 +85,11 @@ const router = createRouter({
       name: 'ArticleDetail',
       component: ArticleDetail,
       props: true
+    },
+    {
+      path: '/community/update/:id',
+      name: 'ArticleUpdate',
+      component: ArticleUpdate,
     },
     {
       path: '',
