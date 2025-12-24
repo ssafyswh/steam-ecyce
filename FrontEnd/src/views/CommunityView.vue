@@ -1,49 +1,44 @@
+<!-- views/CommunityView.vue -->
 <template>
   <div class="community-container">
     <div class="header-section">
       <h1>커뮤니티 게시판</h1>
-      <!-- 로그인한 사용자에게만 글쓰기 버튼 표시 -->
-      <button v-if="authStore.isAuthenticated" @click="goToCreate" class="write-btn">
-        글쓰기
-      </button>
     </div>
 
-    <!-- 로딩 상태 -->
-    <div v-if="loading" class="loading">
-      데이터를 불러오는 중입니다...
-    </div>
+    <div v-if="loading" class="loading">데이터를 불러오는 중입니다...</div>
 
-    <!-- 게시글 목록 -->
     <div v-else class="article-list">
-      <!-- 게시글이 없을 경우 -->
-      <div v-if="articles.length === 0" class="no-data">
-        작성된 게시글이 없습니다.
-      </div>
+      <div v-if="articles.length === 0" class="no-data">작성된 게시글이 없습니다.</div>
 
-      <!-- 게시글 카드 (반복) -->
       <div 
         v-for="article in articles" 
         :key="article.id" 
         class="article-card"
         @click="goToDetail(article.id)"
       >
-        <!-- 썸네일 이미지 (이미지가 있을 경우 첫 번째 사진 표시) -->
         <div class="thumbnail-area">
           <img 
-            v-if="article.images && article.images.length > 0" 
-            :src="getImageUrl(article.images[0].image)" 
-            alt="thumbnail" 
+            v-if="article.game_image" 
+            :src="article.game_image" 
+            :alt="article.game_title" 
           />
-          <div v-else class="no-image">No Image</div>
+          <div v-else class="no-image">No Game Info</div>
         </div>
 
-        <!-- 게시글 정보 -->
         <div class="content-area">
           <h2 class="title">{{ article.title }}</h2>
-          <p class="preview-text">{{ truncateText(article.article, 100) }}</p>
+          
+          <p class="preview-text">{{ truncateText(article.content, 100) }}</p>
           
           <div class="meta-info">
-            <span class="author">작성자 ID: {{ article.user }}</span>
+            <div class="author-info">
+              <img 
+                :src="article.user_avatar || '/default-avatar.png'" 
+                class="user-avatar" 
+                alt="profile"
+              />
+              <span class="author-name">{{ article.user_nickname || 'Unknown' }}</span>
+            </div>
             <span class="date">{{ formatDate(article.created_at) }}</span>
           </div>
         </div>
@@ -56,7 +51,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; // 경로 확인 필요
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -64,15 +59,11 @@ const authStore = useAuthStore();
 const articles = ref([]);
 const loading = ref(true);
 
-// API 호출
 const fetchArticles = async () => {
   try {
     const response = await axios.get('http://localhost:8000/community/articles/');
-    
-    // Django Pagination을 사용 중이므로 데이터는 results 안에 있습니다.
-    console.log('게시글 목록:', response.data);
-    articles.value = response.data.results; 
-    
+    // DRF Pagination을 쓰는 경우 response.data.results, 아니면 response.data
+    articles.value = response.data.results || response.data; 
   } catch (error) {
     console.error('게시글 로드 실패:', error);
   } finally {
@@ -80,101 +71,83 @@ const fetchArticles = async () => {
   }
 };
 
-// 글쓰기 페이지 이동
 const goToCreate = () => {
-  router.push({ name: 'ArticleCreate' }); // 라우터 이름 확인
+  // 그냥 글쓰기 버튼을 눌렀을 때는 월드컵 페이지로 보내는 것이 
+  // 우리 기획(우승작 공유)에 더 맞을 수 있습니다.
+  router.push({ name: 'Worldcup' }); 
 };
 
-// 상세 페이지 이동 (추후 구현 시 사용)
 const goToDetail = (id) => {
-  // router.push({ name: 'ArticleDetail', params: { id } });
-  console.log(`${id}번 게시글 클릭됨`);
+  router.push({ name: 'ArticleDetail', params: { id } });
 };
 
-// 날짜 포맷팅 함수 (YYYY-MM-DD HH:mm)
 const formatDate = (dateString) => {
+  if (!dateString) return '';
   const date = new Date(dateString);
-  return date.toLocaleString('ko-KR', {
+  return date.toLocaleDateString('ko-KR', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
+    month: 'long',
+    day: 'numeric'
   });
 };
 
-// 본문 미리보기 (글자수 자르기)
 const truncateText = (text, length) => {
   if (!text) return '';
   return text.length > length ? text.substring(0, length) + '...' : text;
 };
 
-// 이미지 URL 처리 (http가 포함되어 있지 않으면 붙여줌)
-const getImageUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  return `http://localhost:8000${path}`;
-};
-
-// 컴포넌트 마운트 시 데이터 가져오기
-onMounted(() => {
-  fetchArticles();
-});
+onMounted(fetchArticles);
 </script>
 
 <style scoped>
+/* 1. 레이아웃 및 컨테이너 */
 .community-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
-.write-btn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
+.header-section h1 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin: 0;
 }
 
-.write-btn:hover {
-  background-color: #45a049;
-}
-
+/* 2. 게시글 목록 및 카드 구조 */
 .article-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .article-card {
   display: flex;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   background: white;
-  height: 120px;
+  height: 140px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .article-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-color: #42b883;
 }
 
+/* 3. 카드 내부 이미지 영역 */
 .thumbnail-area {
-  width: 120px;
-  height: 120px;
+  width: 220px;
   background-color: #f0f0f0;
   flex-shrink: 0;
 }
@@ -185,51 +158,87 @@ onMounted(() => {
   object-fit: cover;
 }
 
-.no-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 0.8rem;
-}
-
+/* 4. 카드 내부 콘텐츠 영역 */
 .content-area {
-  padding: 15px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   flex-grow: 1;
+  text-align: left;
+  min-width: 0; /* flex 자식의 텍스트 말줄임표 처리를 위함 */
 }
 
 .title {
-  font-size: 1.2rem;
-  margin: 0 0 5px 0;
-  color: #333;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .preview-text {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 10px 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* 두 줄까지만 표시 */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.5;
 }
 
+/* 5. 메타 정보 (작성자 및 날짜) */
 .meta-info {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
-  color: #999;
-  margin-top: 5px;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: auto;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #eee;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #475569;
+}
+
+/* 6. 공통 컴포넌트 및 상태 */
+.write-btn {
+  background-color: #42b883;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.write-btn:hover {
+  background-color: #36a273;
 }
 
 .loading, .no-data {
+  padding: 100px 0;
+  color: #94a3b8;
+  font-size: 1.1rem;
   text-align: center;
-  padding: 50px;
-  color: #666;
 }
 </style>
