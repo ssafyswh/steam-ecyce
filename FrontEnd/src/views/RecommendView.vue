@@ -136,6 +136,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 1. 기본 컨테이너 & 레이아웃
+--------------------------------------- */
 .recommend-container {
   max-width: 900px;
   margin: 50px auto;
@@ -146,7 +148,6 @@ onMounted(() => {
   box-shadow: 0 0 20px rgba(0,0,0,0.5);
   text-align: center;
   font-family: 'Motiva Sans', sans-serif;
-  
   position: relative; 
   overflow: hidden;
 }
@@ -154,15 +155,20 @@ onMounted(() => {
 h1, h2, h3, h4 { color: #ffffff; }
 .page-title { margin-bottom: 30px; font-size: 2rem; }
 .highlight { color: #66c0f4; font-weight: bold; }
-.analysis-section { background: rgba(0, 0, 0, 0.2); padding: 25px; border-radius: 10px; margin-bottom: 30px; border: 1px solid #2a475e; }
-.analysis-text { font-size: 1.1rem; line-height: 1.7; color: #e0e0e0; white-space: pre-wrap; }
-.rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin: 30px 0; }
-.rec-card { background: #233547; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 1px solid #101822; }
-.card-header { background: #171a21; padding: 15px; border-bottom: 1px solid #3d4c5d; }
-.card-header h4 { margin: 0; color: #66c0f4; }
-.card-body { padding: 20px; color: #acb2b8; }
 .divider { border: 0; height: 1px; background: #2a475e; margin: 30px 0; }
-.date-info { margin-top: 15px; font-size: 0.8rem; color: #6a7782; text-align: right; }
+
+/* 2. 로딩 및 오버레이 (중앙 정렬 핵심)
+--------------------------------------- */
+.loading-box, .loading-overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-box {
+  padding: 100px 0; /* 초기 로딩 시 충분한 공간 확보 */
+}
 
 .loading-overlay {
   position: absolute;
@@ -170,42 +176,11 @@ h1, h2, h3, h4 { color: #ffffff; }
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(27, 40, 56, 0.85); /* 배경색과 같은 톤으로 반투명하게 */
-  z-index: 100; /* 내용물 위에 뜨도록 */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(3px); /* 뒤에 있는 내용 흐리게 처리 */
+  background-color: rgba(27, 40, 56, 0.85);
+  z-index: 100;
+  backdrop-filter: blur(3px);
 }
 
-.loading-overlay p {
-  color: #fff;
-  font-weight: bold;
-  margin-top: 20px;
-  font-size: 1.2rem;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-/* --- 버튼 비활성화 스타일 --- */
-button:disabled {
-  background-color: #3d4450 !important; /* 회색 처리 */
-  color: #888 !important;
-  cursor: not-allowed;
-  transform: none !important; /* 눌리는 효과 제거 */
-  box-shadow: none !important;
-}
-
-.retry-btn { background: #66c0f4; color: #1b2838; }
-.back-btn { background: #3d4450; color: white; }
-
-/* 스피너 */
 .spinner {
   width: 60px;
   height: 60px;
@@ -214,38 +189,79 @@ button:disabled {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+
 .spinner.small {
   width: 40px;
   height: 40px;
   border-width: 4px;
 }
 
-/* 보유 중인 게임 카드 강조 스타일 */
-.owned-card {
-  border: 1px solid #66c0f4;
-  background: rgba(102, 192, 244, 0.05);
+.loading-text { font-size: 1.3rem; margin-top: 20px; color: #fff; }
+.sub-text { color: #66c0f4; margin-top: 10px; }
+
+/* 3. AI 분석 결과 세션
+--------------------------------------- */
+.analysis-section {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  border: 1px solid #2a475e;
+  text-align: left; /* 텍스트 가독성을 위해 좌측 정렬 */
 }
 
-/* 잠자는 게임 배지 스타일 */
-.sleep-badge {
-  position: absolute;
-  top: -12px;
-  right: 10px;
-  background: #66c0f4;
-  color: #1b2838;
-  padding: 4px 12px;
-  border-radius: 20px;
+.analysis-text {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+}
+
+.date-info {
+  margin-top: 15px;
   font-size: 0.8rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  z-index: 1;
+  color: #6a7782;
+  text-align: right;
 }
 
-/* 카드 호버 및 클릭 유도 */
+/* 4. 추천 게임 그리드 & 카드
+--------------------------------------- */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 25px;
+  margin: 30px 0;
+}
+
+.rec-card {
+  background: #233547;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  border: 1px solid #101822;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
 .rec-card:hover {
   transform: translateY(-5px);
   border-color: #66c0f4;
   cursor: pointer;
+}
+
+.card-header {
+  background: #171a21;
+  padding: 15px;
+  border-bottom: 1px solid #3d4c5d;
+}
+
+.card-header h4 { margin: 0; color: #66c0f4; }
+.card-body { padding: 20px; color: #acb2b8; text-align: left; }
+
+/* 보유 중인 게임 강조 */
+.owned-card {
+  border: 1px solid #66c0f4;
+  background: rgba(102, 192, 244, 0.05);
 }
 
 .sleep-text {
@@ -257,15 +273,52 @@ button:disabled {
   font-weight: bold;
 }
 
+/* 5. 버튼 스타일
+--------------------------------------- */
+button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 10px;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  background-color: #3d4450 !important;
+  color: #888 !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.start-btn {
+  background: linear-gradient(90deg, #06BFFF, #2D73FF);
+  color: white;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  margin-top: 20px;
+}
+
+.retry-btn { background: #66c0f4; color: #1b2838; }
+.back-btn { background: #3d4450; color: white; }
+.back-btn-small { background: transparent; color: #66c0f4; text-decoration: underline; }
+
+/* 6. 애니메이션
+--------------------------------------- */
 @keyframes spin { 
   from { transform: rotate(0deg); } 
   to { transform: rotate(360deg); }
 }
 
-/* 초기화면 등 기타 스타일 */
-.start-box { padding: 40px 0; }
-.start-icon { font-size: 5rem; margin: 30px 0; }
-.start-btn { background: linear-gradient(90deg, #06BFFF, #2D73FF); color: white; padding: 15px 40px; font-size: 1.2rem; }
-.loading-box { padding: 60px 0; }
-button { padding: 12px 25px; border: none; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; margin: 10px; transition: all 0.2s ease; }
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.loading-overlay p {
+  animation: pulse 1.5s infinite;
+}
 </style>
