@@ -12,8 +12,8 @@
         <span class="search-icon">🔍</span>
         <input 
           type="text" 
-          v-model="searchKeyword"
-          @input="handleInput" 
+          :value="searchKeyword"
+          @input="e => { searchKeyword = e.target.value; handleInput(); }"
           @keyup.enter="onSearchInput"
           placeholder="검색어를 입력하세요" 
         />
@@ -97,7 +97,11 @@ const searchResults = ref([]);
 const recommendations = ref([])
 const totalCount = ref(0); // 전체 개수 저장용
 const isSearched = ref(false);
+const isLoading = ref(false)
+
 let debounceTimeout = null;
+let abortController = null;
+const lastRequestTime = ref(0);
 
 // 이미지 url이 유효하지 않을 때
 const handleImageError = (game) => {
@@ -113,12 +117,27 @@ const performSearch = async (query) => {
       totalCount.value = 0;
       return;
   }
+
+  if (abortController) {
+    abortController.abort();
+  }
+
+  abortController = new AbortController();
+  const currentRequestTime = Date.now();
+  lastRequestTime.value = currentRequestTime;
+
   try {
+    isLoading.value = true;
     searchKeyword.value = query; 
 
     const response = await axios.get(`http://localhost:8000/games/search/`, {
-      params: {q: query, limit: 5}
+      params: {q: query, limit: 5},
+      signal: abortController.signal
     });
+
+    if (currentRequestTime !== lastRequestTime.value) {
+      return;
+    }
 
     searchResults.value = response.data.results;
     totalCount.value = response.data.count;
@@ -132,10 +151,15 @@ const performSearch = async (query) => {
 
     isSearched.value = true;
   } catch (error) {
-    console.error("검색 실패:", error);
-    searchResults.value = [];
-    recommendations.value = [];
-    isSearched.value = true;
+    if (axios.isCancel(error)) {
+      console.log('이전 요청 취소됨:', query);
+    } else {
+      console.log('검색 실패:', error);
+    }
+  } finally {
+    if (currentRequestTime === lastRequestTime.value) {
+      isLoading.value = false;
+    }
   }
 };
 
@@ -145,6 +169,7 @@ const handleInput = () => {
   if (debounceTimeout) clearTimeout(debounceTimeout);
 
   if (!query) {
+    if (abortController) abortController.abort();
     searchResults.value = [];
     recommendations.value = [];
     isSearched.value = false;
@@ -156,7 +181,7 @@ const handleInput = () => {
   debounceTimeout = setTimeout(() => {
     performSearch(query);
     router.replace({ query: { q: query }}).catch(() => {});
-  }, 1000);
+  }, 1200);
 }
 
 // 엔터 입력하면 바로 실행
@@ -168,6 +193,7 @@ const onSearchInput = () => {
 
 // 검색어 초기화
 const clearSearch = () => {
+  if (abortController) abortController.abort();
   searchKeyword.value = '';
   searchResults.value = [];
   recommendations.value = [];
@@ -194,7 +220,12 @@ onMounted(() => {
 });
 
 watch(() => route.query.q, (newQuery) => {
-  performSearch(newQuery);
+  if (newQuery) {
+    performSearch(newQuery);
+  } else {
+    // 검색어가 없어지면 결과창을 비움
+    clearSearch();
+  }
 });
 </script>
 
