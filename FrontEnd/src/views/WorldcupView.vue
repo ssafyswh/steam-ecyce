@@ -93,6 +93,7 @@
       <div class="action-buttons">
         <button class="btn btn-primary" @click="resetGame">다시 하기</button>
         <button class="btn btn-text" @click="$router.push('/')">메인으로</button>
+        <button class="btn btn-outline" @click="goToSharePage">결과 공유하기</button>
       </div>
     </div>
 
@@ -171,6 +172,18 @@ const fetchMyGames = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+// 공유 페이지로 이동
+const goToSharePage = () => {
+  router.push({
+    name: 'ArticleCreate',
+    query: {
+      gameId: winner.value.id,
+      gameTitle: winner.value.name,
+      gameImage: winner.value.image
+    }
+  });
 };
 
 onMounted(() => {
