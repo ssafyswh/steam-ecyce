@@ -102,8 +102,8 @@ const submitForm = async () => {
   const formData = new FormData();
   formData.append('title', title.value);
   
-  // [중요] Django Serializer 필드명이 'content'라면 여기도 'content'여야 합니다.
-  // 보내는 키값('article')이 모델/시리얼라이저 필드명과 일치하는지 꼭 확인하세요!
+  // 보내는 키값('article')이 모델/시리얼라이저 필드명과 일치하는지 꼭 확인하세요
+  console.log(content.value)
   formData.append('article', content.value); 
   // 만약 모델 필드명이 article이라면 기존대로 'article' 유지: formData.append('article', content.value);
 
@@ -126,7 +126,7 @@ const submitForm = async () => {
 
     console.log('성공:', response.data);
     alert('게시글이 작성되었습니다!');
-    router.push({ name: 'CommunityView' }); // 뷰 이름 확인 필요
+    router.push({ name: 'community' }); // 뷰 이름 확인 필요
 
   } catch (error) {
     console.error('에러 상세:', error);
