@@ -2,7 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import SteamCallback from '../views/SteamCallback.vue'
-import ProfileView from '@/views/ProfileView.vue'
+// import ProfileView from '@/views/ProfileView.vue'
 import RecommendView from '@/views/RecommendView.vue'
 import GameDetailView from '@/views/GameDetailView.vue'
 import MainView from '@/views/MainView.vue'
@@ -10,6 +10,8 @@ import SearchResultsView from '@/views/SearchResultsView.vue'
 import GameInfoView from '@/views/GameInfoView.vue'
 import WorldcupView from '@/views/WorldcupView.vue'
 import CommunityView from '@/views/CommunityView.vue'
+import LibraryView from '@/views/LibraryView.vue' // 기존 ProfileView의 이름을 변경했다고 가정
+import MyPageView from '@/views/MyPageView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,10 +32,20 @@ const router = createRouter({
       component: GameDetailView,
       props: true
     },
+    // {
+    //   path: '/profile',
+    //   name: 'profile',
+    //   component: ProfileView,
+    // },
     {
-      path: '/profile',
-      name: 'profile',
-      component: ProfileView,
+      path: '/library', // 라이브러리 전용 경로
+      name: 'library',
+      component: LibraryView,
+    },
+    {
+      path: '/mypage',  // 마이페이지(AI/최애게임) 전용 경로
+      name: 'mypage',
+      component: MyPageView,
     },
     {
       path: '/recommend',

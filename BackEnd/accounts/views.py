@@ -12,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 
+from .serializers import MyPageSerializer
+
 User = get_user_model()
 
 class SteamLoginUrlView(APIView):
@@ -126,3 +128,13 @@ def Logout_view(request):
     response.delete_cookie('refresh_token')
     
     return response
+
+
+class MyPageView(APIView):
+    # 인증된 사용자만 접근 가능
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 현재 토큰의 주인공인 유저(request.user)의 통합 정보를 반환
+        serializer = MyPageSerializer(request.user)
+        return Response(serializer.data)
