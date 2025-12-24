@@ -10,6 +10,8 @@ import SearchResultsView from '@/views/SearchResultsView.vue'
 import GameInfoView from '@/views/GameInfoView.vue'
 import WorldcupView from '@/views/WorldcupView.vue'
 import CommunityView from '@/views/CommunityView.vue'
+import ArticleCreate from '@/views/ArticleCreate.vue'
+import ArticleDetail from '@/views/ArticleDetail.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,6 +61,17 @@ const router = createRouter({
       path: '/community',
       name: 'community',
       component: CommunityView
+    },
+    {
+      path: '/community/create',
+      name: 'ArticleCreate',
+      component: ArticleCreate
+    },
+    {
+      path: '/community/:id',
+      name: 'ArticleDetail',
+      component: ArticleDetail,
+      props: true
     },
     {
       path: '',
