@@ -7,6 +7,20 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
   const isAuthenticated = ref(!!localStorage.getItem('isLoggedIn'));
 
+  // 임시 로그인 전용 함수
+  const mockLogin = async () => {
+    try {
+      await axios.post('http://localhost:8000/api/auth/steam/verify/', {});
+      localStorage.setItem('isLoggedIn', 'yes');
+      await fetchUser();
+      
+      return true;
+    } catch (error) {
+      console.error("임시 로그인 실패:", error);
+      throw error;
+    }
+  };
+
   // 앱 시작 시 실행
   const initialize = async () => {
     // 로컬 스토리지에 '로그인 표시'가 없으면 아예 요청을 안 보냄
@@ -77,5 +91,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  return { user, isAuthenticated, initialize, fetchUser, verifySteamLogin, logout };
+  return { user, isAuthenticated, initialize, fetchUser, verifySteamLogin, logout, mockLogin };
 });

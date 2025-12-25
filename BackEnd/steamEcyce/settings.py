@@ -12,6 +12,10 @@ environ.Env.read_env(BASE_DIR / '.env')
 STEAM_API_KEY = env('STEAM_API_KEY')
 FRONTEND_URL = 'http://localhost:5173'
 
+# 스팀 서버 꺼지면 임시방편, 일반적으로는 False로, 스팀 문제생기면 True로
+MOCK_STEAM_LOGIN = True
+MOCK_STEAM_ID = '76561198139404209'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-qc9titjx)&#5s4wzmgm40-s*a(l&wo9dsc6u6^36fuxe*p&slx'
 

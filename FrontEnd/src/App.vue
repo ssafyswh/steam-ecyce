@@ -20,7 +20,7 @@
             </router-link>
           </nav>
         </div>
-
+        
         <!-- 오른쪽 영역: 유저 액션 (기존 유지) -->
         <div class="nav-right">
           <!-- 조건을 'isAuthenticated' 하나만 봄 -->
@@ -41,6 +41,7 @@
 
           <!-- 로그아웃 상태 -->
           <div v-else>
+            <button class="btn" @click="handleMockLogin"></button>
             <button class="btn btn-primary" @click="handleSteamLogin">
               스팀 로그인
             </button>
@@ -71,6 +72,17 @@ onMounted(() => {
 const handleLogout = () => {
   authStore.logout();
   router.push('/');
+};
+
+// 임시 로그인 함수
+const handleMockLogin = async () => {
+  try {
+    // 스토어에 만든 함수를 호출
+    await authStore.mockLogin();
+    alert("임시 계정으로 로그인되었습니다.");
+  } catch (error) {
+    alert("임시 로그인에 실패했습니다. 백엔드 설정을 확인하세요.");
+  }
 };
 
 const goToProfile = () => {
