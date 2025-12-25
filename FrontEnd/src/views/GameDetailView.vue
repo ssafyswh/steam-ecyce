@@ -85,13 +85,18 @@
           <div class="stat-item">
             <span class="label">가격</span>
             <span class="value price">
-              {{ game.price === 0 ? 'Free to Play' : `₩ ${game.price.toLocaleString()}` }}
+              {{ priceDisplay }}
             </span>
           </div>
 
           <div class="stat-item">
             <span class="label">출시일</span>
-            <span class="value">{{ game.release_date || '정보 없음' }}</span>
+            <span class="value">{{ releaseStatus.text }}</span>
+          </div>
+
+          <div class="stat-item">
+            <span class="label">개발사</span>
+            <span class="value">{{ game.developer || '정보 없음' }}</span>
           </div>
 
           <div class="stat-item">
@@ -197,6 +202,48 @@ const requestAiAnalysis = async () => {
     alert("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
   }
 };
+
+// 현재 날짜와 비교하여 출시 여부 및 표시 텍스트 결정
+const releaseStatus = computed(() => {
+  if (!game.value || !game.value.release_date) {
+    return { isReleased: false, text: '미출시' };
+  }
+
+  const releaseDate = new Date(game.value.release_date);
+  const now = new Date();
+
+  // 날짜 파싱이 안 되는 경우 처리
+  if (isNaN(releaseDate.getTime())) {
+    return { isReleased: false, text: '미출시' };
+  }
+
+  if (releaseDate > now) {
+    // 미래 날짜인 경우
+    return { isReleased: false, text: `출시 예정 (${game.value.release_date})` };
+  }
+
+  return { isReleased: true, text: game.value.release_date };
+});
+
+// 가격 표시 로직 결정
+const priceDisplay = computed(() => {
+  if (!game.value) return '정보 없음';
+
+  const price = game.value.price;
+  
+  // 1. 가격 정보가 없거나 0일 때
+  if (price === undefined || price === null || price === 0) {
+    // 미출시 상태라면 '정보없음'
+    if (!releaseStatus.value.isReleased) {
+      return '정보 없음';
+    }
+    // 출시된 상태라면 'Free to Play'
+    return 'Free to Play';
+  }
+
+  // 2. 가격이 있는 경우
+  return `₩ ${price.toLocaleString()}`;
+});
 
 // 페이지 이동 검사
 watch(() => route.params.id, () => {
