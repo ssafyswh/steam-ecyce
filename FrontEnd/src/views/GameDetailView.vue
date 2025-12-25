@@ -143,7 +143,7 @@ const fetchGameDetail = async () => {
 
     if (!game.value || !game.value.title || !game.value.description) {
       // 정보가 불완전할경우 잠시 후 재실행
-      if (retryCount.value < 10) {
+      if (retryCount.value < 2) {
         retryCount.value++;
         console.log("LOADING...");
         setTimeout(() => fetchGameDetail(), 1000);

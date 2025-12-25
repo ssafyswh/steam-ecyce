@@ -1,3 +1,4 @@
+# ai_analysis/models.py
 from django.db import models
 from games.models import Game
 from django.core.validators import MinValueValidator, MaxValueValidator
