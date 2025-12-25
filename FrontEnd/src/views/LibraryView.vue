@@ -1,78 +1,4 @@
 <!-- views/ProfileView.vue -->
-<template>
-  <div class="profile-container">
-    <div v-if="isLoading" class="loading-overlay">
-      <div class="loading-box">
-        <div class="spinner"></div>
-        <p>스팀 라이브러리를 동기화 중입니다...</p>
-        <span>잠시만 기다려주세요 (최초 동기화 시 약 1분 정도 소요됩니다.)</span>
-      </div>
-    </div>
-
-    <div class="profile-header-card">
-      <div class="header-top">
-        <div class="header-info">
-          <h2 class="main-title">🎮 내 스팀 라이브러리</h2>
-          <div class="stats-badge" v-if="games.length > 0">
-            총 <strong>{{ games.length }}</strong>개의 게임을 소유중
-          </div>
-        </div>
-    
-        <div class="header-actions">
-          <button v-if="games.length !== 0" @click="$router.push('/recommend')" class="ai-btn">
-           🤖 AI 게임 취향 분석
-          </button>
-          <button @click="syncLibrary" :disabled="isLoading" class="sync-btn-modern">
-            {{ isLoading ? '동기화 중...' : '🔄 라이브러리 최신화' }}
-          </button>
-        </div>
-      </div>
-
-      <div class="header-footer">
-        <p class="privacy-notice">
-          <i class="info-icon">i</i> 라이브러리 정보를 불러오기 위해 스팀 프로필을 <strong>'공개'</strong>로 설정해주세요.
-        </p>
-      </div>
-    </div>
-
-    <!-- 게임 정렬 옵션 선택 -->
-    <div class="sort-container">
-      <span class="sort-label">정렬 기준</span>
-      <div class="chip-group">
-        <button 
-          v-for="option in sortOptions" 
-          :key="option.value" 
-          :class="['chip-btn', { active: sortBy === option.value }]"
-          @click="sortBy = option.value"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
-    
-    <!-- 로딩 상태가 아니고 게임이 없을 때 -->
-    <div v-if="!isLoading && games.length === 0" class="empty-state">
-      <p>등록된 게임이 없습니다! 위 버튼을 눌러 스팀 정보를 가져오세요!</p>
-    </div>
-
-    <!-- 게임 그리드 리스트 -->
-    <div class="game-grid">
-      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card" @click="$router.push(`/game/${item.game.appid}`)">
-        <div class="image-wrapper">
-          <img :src="item.game.header_image" :alt="item.game.title" loading="lazy" />
-        </div>
-        <div class="game-info">
-          <h3 class="game-title">{{ item.game.title }}</h3>
-          <p class="playtime">
-            총 플레이: <span>{{ (item.playtime_total / 60).toFixed(1) }} 시간</span><br>
-            최근 플레이: <span>{{ (item.playtime_recent_2weeks / 60).toFixed(1) }} 시간</span>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
@@ -105,6 +31,13 @@ const sortedGames = computed(() => {
   })
 })
 
+const steamSettingsUrl = computed(() => {
+  // authStore에 저장된 스팀 아이디 필드명을 확인해 주세요 (예: authStore.user.steam_id)
+  const steamId = authStore.user?.steam_id; 
+  return steamId 
+    ? `https://steamcommunity.com/profiles/${steamId}/edit/settings`
+    : 'https://steamcommunity.com/my/edit/settings'; // 아이디가 없을 때의 기본 경로
+});
 
 // DB에 저장된 게임 목록 가져오기
 const fetchLibrary = async () => {
@@ -145,13 +78,90 @@ onMounted(() => {
   fetchLibrary();
 });
 </script>
+<template>
+  <div class="profile-container">
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loading-box">
+        <div class="spinner"></div>
+        <p>스팀 라이브러리를 동기화 중입니다...</p>
+        <span>최초 동기화 시 약 1분 정도 소요됩니다.</span>
+      </div>
+    </div>
+
+    <div class="profile-header-card">
+      <div class="header-top">
+        <div class="header-info">
+          <h2 class="main-title">내 스팀 라이브러리</h2>
+          <div class="stats-badge" v-if="games.length > 0">
+            총 <strong>{{ games.length }}</strong>개의 게임
+          </div>
+        </div>
+    
+        <div class="header-actions">
+          <button v-if="games.length !== 0" @click="$router.push('/recommend')" class="ai-btn">
+            🤖 AI 취향 분석
+          </button>
+          <button @click="syncLibrary" :disabled="isLoading" class="sync-btn-modern">
+            {{ isLoading ? '동기화 중...' : '🔄 라이브러리 최신화' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="header-footer">
+        <p class="privacy-notice">
+          <span class="info-badge">TIP</span>
+          라이브러리를 불러오려면 스팀 프로필을
+          <a :href="steamSettingsUrl" target="_blank" class="privacy-link">'공개'</a>
+          로 설정해 주세요.
+        </p>
+      </div>
+    </div>
+
+    <div class="sort-container">
+      <div class="chip-group">
+        <button 
+          v-for="option in sortOptions" 
+          :key="option.value" 
+          :class="['chip-btn', { active: sortBy === option.value }]"
+          @click="sortBy = option.value"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
+    
+    <div v-if="!isLoading && games.length === 0" class="empty-state">
+      <div class="empty-icon">📂</div>
+      <p>등록된 게임이 없습니다.<br>상단 버튼을 눌러 스팀 정보를 가져오세요!</p>
+    </div>
+
+    <div class="game-grid">
+      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card" @click="$router.push(`/game/${item.game.appid}`)">
+        <div class="image-wrapper">
+          <img :src="item.game.header_image" :alt="item.game.title" loading="lazy" />
+        </div>
+        <div class="game-info">
+          <h3 class="game-title">{{ item.game.title }}</h3>
+          <div class="playtime-box">
+            <p>총 플레이 <span>{{ (item.playtime_total / 60).toFixed(1) }}h</span></p>
+            <p>최근 2주 <span>{{ (item.playtime_recent_2weeks / 60).toFixed(1) }}h</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
-/* 기본 레이아웃 */
+/* 폰트 및 배경 설정 */
 .profile-container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 40px 20px;
+  background-color: #f8f9fa; /* 아주 밝은 그레이 배경 */
+  min-height: 100vh;
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  color: #333;
 }
 
 /* 로딩 오버레이 */
@@ -161,267 +171,240 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(27, 40, 56, 0.85);
+  background-color: rgba(255, 255, 255, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(5px);
 }
 
 .loading-box {
   text-align: center;
-  color: white;
-}
-
-.loading-box p {
-  font-size: 1.2rem;
-  margin-top: 20px;
-  font-weight: bold;
-}
-
-.loading-box span {
-  display: block;
-  margin-top: 10px;
-  color: #8f98a0;
-  font-size: 0.9rem;
+  color: #2c3e50;
 }
 
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #2a475e;
-  border-top-color: #66c0f4;
+  width: 45px;
+  height: 45px;
+  border: 4px solid #e9ecef;
+  border-top-color: #3498db;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto;
+  margin: 0 auto 20px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* 상단 헤더 */
+/* 헤더 카드 */
 .profile-header-card {
-  background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
-  border-radius: 12px;
-  padding: 30px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 35px;
   margin-bottom: 30px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(102, 192, 244, 0.1);
-  text-align: left;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eee;
 }
 
 .header-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 20px;
 }
 
 .main-title {
-  font-size: 2rem;
-  margin: 0 0 10px 0;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  font-size: 1.8rem;
+  margin: 0 0 12px 0;
+  color: #1a1a1a;
+  font-weight: 800;
 }
 
 .stats-badge {
   display: inline-block;
-  background: rgba(102, 192, 244, 0.15);
-  color: #66c0f4;
-  padding: 6px 16px;
-  border-radius: 30px;
-  font-size: 0.95rem;
-  border: 1px solid rgba(102, 192, 244, 0.3);
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.stats-badge strong {
-  font-size: 1.1rem;
-  margin: 0 2px;
-}
-
-/* 헤더 내 버튼들 */
+/* 버튼 스타일 */
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .ai-btn {
-  background: linear-gradient(90deg, #8e24aa, #ba68c8);
+  background: #6366f1;
   color: white;
-  padding: 12px 24px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 0 10px rgba(186, 104, 200, 0.4);
+  font-weight: 700;
   transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .ai-btn:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
 }
 
 .sync-btn-modern {
-  background-color: transparent;
-  color: #66c0f4;
-  padding: 12px 24px;
-  font-weight: bold;
-  border: 2px solid #66c0f4;
-  border-radius: 8px;
+  background-color: #ffffff;
+  color: #555;
+  padding: 12px 20px;
+  font-weight: 600;
+  border: 1px solid #ddd;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s;
 }
 
 .sync-btn-modern:hover:not(:disabled) {
-  background-color: #66c0f4;
-  color: #1b2838;
-  box-shadow: 0 0 20px rgba(102, 192, 244, 0.4);
+  background-color: #f3f4f6;
+  border-color: #ccc;
 }
 
-.sync-btn-modern:disabled {
-  border-color: #4f5b66;
-  color: #4f5b66;
-  cursor: not-allowed;
-}
-
-/* 헤더 푸터 (안내 문구) */
+/* 헤더 푸터 안내 */
 .header-footer {
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .privacy-notice {
-  font-size: 0.85rem;
-  color: #8f98a0;
+  font-size: 0.9rem;
+  color: #777;
   margin: 0;
 }
 
-.privacy-notice strong {
-  color: #c7d5e0;
-}
-
-.info-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background: #4f5b66;
-  color: white;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 16px;
-  font-style: normal;
-  font-size: 11px;
+.info-badge {
+  background: #ffedd5;
+  color: #f97316;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
   margin-right: 6px;
 }
 
-/* 정렬 필터 */
+/* 정렬 필터 (칩 스타일) */
 .sort-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 25px;
-}
-
-.sort-label {
-  color: #8f98a0;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
 .chip-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: inline-flex;
+  background: #eee;
+  padding: 4px;
+  border-radius: 14px;
 }
 
 .chip-btn {
-  background-color: rgba(42, 71, 94, 0.6);
-  color: #c7d5e0;
-  border: 1px solid rgba(102, 192, 244, 0.2);
+  background: transparent;
+  color: #666;
+  border: none;
   padding: 8px 18px;
-  border-radius: 20px;
+  border-radius: 10px;
   font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.chip-btn:hover {
-  background-color: rgba(102, 192, 244, 0.2);
-  border-color: rgba(102, 192, 244, 0.5);
-  color: white;
+  transition: all 0.2s;
 }
 
 .chip-btn.active {
-  background-color: #66c0f4;
-  color: #1b2838;
-  border-color: #66c0f4;
-  font-weight: bold;
-  box-shadow: 0 0 12px rgba(102, 192, 244, 0.4);
+  background: #ffffff;
+  color: #1a1a1a;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* 게임 리스트 그리드 */
-.empty-state {
-  text-align: center;
-  padding: 50px;
-  color: #8f98a0;
-}
-
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 25px;
 }
 
 .game-card {
-  background: #2a475e;
-  border-radius: 8px;
+  background: #ffffff;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
   cursor: pointer;
+  border: 1px solid #f0f0f0;
 }
 
 .game-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
 }
 
 .image-wrapper img {
   width: 100%;
-  height: auto;
+  aspect-ratio: 460 / 215;
+  object-fit: cover;
   display: block;
 }
 
 .game-info {
-  padding: 15px;
-  color: #c7d5e0;
-  text-align: left;
+  padding: 16px;
 }
 
 .game-title {
-  font-size: 1.1rem;
-  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+  margin: 0 0 12px 0;
+  color: #222;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: white;
 }
 
-.playtime {
-  font-size: 0.9rem;
-  color: #8f98a0;
-  line-height: 1.5;
+.playtime-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.playtime span {
-  color: #66c0f4;
-  font-weight: bold;
+.playtime-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #888;
+  display: flex;
+  justify-content: space-between;
+}
+
+.playtime-box span {
+  color: #3498db;
+  font-weight: 700;
+}
+
+/* 빈 상태 */
+.empty-state {
+  text-align: center;
+  padding: 80px 0;
+  color: #aaa;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.privacy-link {
+  color: #4f46e5; /* 기존 포인트 컬러와 통일 */
+  text-decoration: underline;
+  font-weight: 800;
+  transition: color 0.2s;
+}
+
+.privacy-link:hover {
+  color: #312e81; /* 호버 시 조금 더 진하게 */
 }
 </style>
