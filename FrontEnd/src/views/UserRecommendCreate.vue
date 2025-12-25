@@ -116,10 +116,6 @@ onMounted(() => {
   loadExistingReview()
 })
 
-const setRating = (key, star) => {
-  reviewData[key] = star
-}
-
 const submitReview = async () => {
   // 유효성 검사 로직 (기존과 동일)
   for (const key in metrics) {

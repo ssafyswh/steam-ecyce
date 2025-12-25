@@ -4,10 +4,10 @@
     <div class="header-section">
       <div class="header-texts">
         <h1 class="main-title">Gamers Hub</h1>
-        <p class="main-subtitle">유저들이 직접 뽑은 최고의 게임과 솔직한 리뷰를 확인하세요.</p>
+        <p class="main-subtitle">실제 게임을 보유한 유저들이 직접 뽑은 최고의 게임과 솔직한 리뷰를 확인하세요.</p>
       </div>
       <div class="header-actions">
-         <button class="action-btn worldcup-btn" @click="$router.push({ name: 'Worldcup' })">
+         <button class="action-btn worldcup-btn" @click="$router.push({ name: 'worldcup' })">
            🏆 내 인생 게임 찾기
          </button>
       </div>
@@ -20,7 +20,7 @@
 
     <div v-else>
       <section v-if="hasReviews" class="hall-of-fame">
-        <h2 class="sub-section-title">👑 CATEGORY BEST GAMES</h2>
+        <h2 class="sub-section-title">👑 Game Of The steamecYce</h2>
         <div class="fame-grid">
           <div 
             v-for="(game, category) in filteredTopGames" 
@@ -270,7 +270,7 @@ onMounted(fetchData);
 .community-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 60px 20px;
+  padding: 0px 20px;
   background-color: #ffffff;
 }
 
