@@ -1,3 +1,4 @@
+<!-- views/UserRecommendDetail.vue -->
 <template>
   <div class="review-detail-container" v-if="review">
     
@@ -9,7 +10,7 @@
           <h1 class="game-title">{{ review.game_title }}</h1>
         </div>
         
-        <div class="author-box">
+        <div class="author-box" @click="$router.push(`/${review.user_id}`)">
           <img :src="review.user_avatar || '/default-avatar.png'" alt="Avatar" class="author-avatar">
           <div class="author-info">
             <span class="author-name">{{ review.user_nickname || '익명 사용자' }}</span>
@@ -115,18 +116,24 @@ const fetchReviewDetail = async () => {
 }
 
 const deleteReview = async () => {
-  if(!confirm('작성하신 리뷰를 정말 삭제하시겠습니까?\n삭제 후에는 복구가 불가능합니다.')) return
+  if(!confirm('작성하신 리뷰를 정말 삭제하시겠습니까?')) return
 
   try {
-    await axios.delete(`http://127.0.0.1:8000/community/reviews/${reviewId}/`, {
-      headers: { Authorization: `Bearer ${authStore.token}` },
-      withCredentials: true
+    // 1. 주소를 127.0.0.1 대신 localhost로 통일 (쿠키 공유를 위해)
+    // 2. 헤더의 Authorization은 백엔드에서 안 보므로 생략 가능
+    await axios.delete(`http://localhost:8000/community/reviews/${reviewId}/`, {
+      withCredentials: true 
     })
+    
     alert('리뷰가 정상적으로 삭제되었습니다.')
     router.push({ name: 'community' })
   } catch (error) {
-    console.error('삭제 실패:', error)
-    alert('삭제에 실패했습니다.')
+    console.error('삭제 실패 상세:', error.response)
+    if (error.response?.status === 401) {
+      alert('인증이 만료되었습니다. 다시 로그인해주세요.')
+    } else {
+      alert('삭제 권한이 없거나 오류가 발생했습니다.')
+    }
   }
 }
 

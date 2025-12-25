@@ -82,22 +82,23 @@ class ReviewSerializer(serializers.ModelSerializer):
             return {'total_hours': 0, 'recent_hours': 0}
 
     def create(self, validated_data):
-        # 프론트엔드에서 보낸 game_id(Steam AppID) 추출
         game_id = validated_data.pop('game_id')
         
         try:
-            # DB에서 해당 appid를 가진 게임 객체 조회
+            # 실제 Game 객체를 찾음
             game = Game.objects.get(appid=game_id)
         except Game.DoesNotExist:
             raise serializers.ValidationError({"game_id": "존재하지 않는 게임입니다."})
         
-        # 현재 접속 중인 유저 정보 가져오기
+        # 현재 유저 정보 가져오기 (context 이용)
         user = self.context['request'].user
         
-        # 중복 리뷰 체크
+        # 중복 리뷰 체크 (선택 사항이지만 권장)
         if Review.objects.filter(user=user, game=game).exists():
             raise serializers.ValidationError({"detail": "이미 이 게임에 대한 리뷰를 작성했습니다."})
             
-        # 리뷰 생성 및 게임 객체 연결
-        review = Review.objects.create(user=user, game=game, **validated_data)
-        return review
+        # views.py에서 serializer.save(user=...)를 했으므로 user는 이미 주머니에 있음
+        validated_data['game'] = game
+
+        # 6. 부모 클래스의 create를 호출하면 DRF가 알아서 중복 없이 잘 저장해줌
+        return super().create(validated_data)
