@@ -1,93 +1,92 @@
-# final-pjt-team8
+# 🎮 Steam [Ecyce](https://youtu.be/0E15Mw7pjJw?si=-Npa8tIrM50pWLoc): AI 기반 개인화 게임 분석 & 커뮤니티 플랫폼
 
+> **AI를 통해 더 나은 스팀 라이브러리 라이프사이클을 완성합니다.**<br>
+> 본 프로젝트는 사용자의 플레이 경험을 분석하고, AI 기반의 스마트한 검색 및 리뷰 요약 기능을 제공하는 개인화 플랫폼입니다.
 
+---
 
-## Getting started
+## 0. 팀 정보 (Team Information)
+* **팀 번호**: 8팀
+* **팀원**: 신원호(팀장), 문현아, 이강우
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## 1. 프로젝트 개요 (Project Overview)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### 🚩 기획 배경 및 해결 목표
+* **검색의 한계**: 기존 스팀의 엄격한 검색 시스템을 보완하여 유사어 및 맥락 검색이 가능하도록 개선합니다.
+* **정보의 과잉**: 방대하게 쌓인 게임 리뷰를 AI가 구조화하여 핵심 정보만 빠르게 전달합니다.
+* **개인화 부족**: 단순 필터링 추천을 넘어 유저의 실제 플레이 데이터를 기반으로 정교한 분석 리포트와 추천을 제공합니다.
+* **컨텐츠 부재**: 단순한 리캡(Recap) 기능을 넘어 이상형 월드컵 등 즐길 거리를 제공하고 이를 커뮤니티와 연결합니다.
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## 2. 서비스 핵심 기능 (Key Features)
 
-```
-cd existing_repo
-git remote add origin https://lab.ssafy.com/s14/a06/final-pjt-team8.git
-git branch -M master
-git push -uf origin master
-```
+### 🔍 스마트 검색 시스템 (Smart Search)
+* **기본 검색**: 게임 타이틀 기반의 빠르고 정확한 검색을 지원합니다.
+* **AI 보완 검색**: 오타나 유사어 검색 시 AI가 맥락을 파악하여 적절한 결과를 추천합니다.
 
-## Integrate with your tools
+> **![실행 화면 1](/Docs/Images/example1.gif) ![실행 화면 2](/Docs/Images/example2.png)**
 
-- [ ] [Set up project integrations](https://lab.ssafy.com/s14/a06/final-pjt-team8/-/settings/integrations)
+### 📝 AI 리뷰 요약 및 구조화 (Review Summary)
+* **AI 큐레이터**: 흩어져 있는 수많은 유저 리뷰를 분석하여 종합 요약문을 생성합니다.
+* **데이터 최신화**: 잦은 API 호출을 방지하면서도 최신 리뷰가 반영된 요약 정보를 제공합니다.
 
-## Collaborate with your team
+> **![실행 화면 3](/Docs/Images/example3.webp) ![실행 화면 4](/Docs/Images/example4.png)**
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### 📊 개인화 분석 리포트 & 추천 (Analysis & Recommendation)
+* **게이머 분석**: 사용자의 실제 플레이 타임과 장르 선호도를 기반으로 분석 리포트를 제공합니다.
+* **맞춤형 추천**: 분석된 결과를 바탕으로 유저의 취향에 딱 맞는 차기 게임을 추천합니다.
 
-## Test and Deploy
+> **![실행 화면 5](/Docs/Images/example5.gif) ![실행 화면 6](/Docs/Images/example6.png) ![실행 화면 7](/Docs/Images/example7.png)**
 
-Use the built-in continuous integration in GitLab.
+### 🏆 게임 이상형 월드컵 & 커뮤니티 (Contents)
+* **월드컵 컨텐츠**: 유저 라이브러리에 있는 게임들을 대상으로 월드컵을 진행합니다.
+* **최애 게임 반영**: 우승한 게임은 '최애 게임'으로 선정되어 프로필에 반영됩니다.
+* **커뮤니티 공유**: 월드컵 결과와 리뷰를 커뮤니티에 공유하여 다른 유저들과 소통합니다.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+> **![실행 화면 8](/Docs/Images/example8.png) ![실행 화면 9](/Docs/Images/example9.png) ![실행 화면 10](/Docs/Images/example10.png)**
 
-***
+[실행 예시 영상](https://youtu.be/0v7zxwRBH50?si=cdGl9m12jSptUEUy)
 
-# Editing this README
+---
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## 3. 기술적 구현 및 설계 (Technical Architecture)
 
-## Suggestions for a good README
+### 🛠 기술 스택 (Tech Stack)
+#### **Frontend**
+![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Pinia](https://img.shields.io/badge/Pinia-FFD700?style=for-the-badge&logo=pinia&logoColor=black)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+#### **Backend**
+![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
+![Django REST Framework](https://img.shields.io/badge/DRF-FF1709?style=for-the-badge&logo=django&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 
-## Name
-Choose a self-explaining name for your project.
+#### **AI & API**
+![OpenAI](https://img.shields.io/badge/GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Gemini--1.5--Flash-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white)
+![Steam](https://img.shields.io/badge/Steam_Web_API-000000?style=for-the-badge&logo=steam&logoColor=white)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+#### **Tools**
+![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white)
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+### 🤖 AI 구현 세부 사항
+* **LLM 인터페이스 통합**: GPT와 Gemini의 서로 다른 호출 방식을 `get_ai_response` 함수로 단일화하여 유지보수성을 높였습니다.
+* **핵심 로직**:
+  * `get_ai_analysis`: 사용자 성향 기반 게임 분석 및 추천
+  * `get_ai_review_summary`: 게임 리뷰 요약문 작성
+  * `get_search_recommendation`: 문맥 기반 검색 보완
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### 🏗 ERD 설계
+* 프로젝트의 백엔드 구조는 `Accounts`, `Games`, `Community`, `AI Analysis`의 4가지 앱으로 설계되었습니다.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+> ![ERD](/Docs/Images/ERD.png)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+---
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
