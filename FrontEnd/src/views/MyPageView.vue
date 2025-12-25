@@ -52,12 +52,12 @@
             <h2>나의 최애 게임</h2>
           </div>
           <div v-if="profileData.favorite_game" class="fav-content">
-            <router-link :to="{ name: 'GameDetail', params: { id: profileData.favorite_game.appid } }" class="game-link">
-              <div class="img-frame">
+            <div class="img-frame">
+              <router-link :to="{ name: 'GameDetail', params: { id: profileData.favorite_game.appid } }" class="game-link">
                 <img :src="profileData.favorite_game.header_image" alt="Game" />
+              </router-link>
               </div>
               <p class="game-title">{{ profileData.favorite_game.title }}</p>
-            </router-link>
           </div>
           <div v-else class="empty-small">등록된 게임이 없습니다.</div>
         </section>
