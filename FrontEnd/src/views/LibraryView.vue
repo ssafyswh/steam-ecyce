@@ -14,7 +14,7 @@ const sortBy = ref('total');
 const sortOptions = [
   { label: '제목', value: 'title'},
   { label: '총 플레이타임', value: 'total'},
-  { label: '최근 플레이(2주)', value: 'recent'},
+  { label: '최근 플레이타임(2주)', value: 'recent'},
 ]
 
 // 게임 목록 정렬 (제목 / 총 플레이 / 최근 플레이)
@@ -143,8 +143,8 @@ onMounted(() => {
         <div class="game-info">
           <h3 class="game-title">{{ item.game.title }}</h3>
           <div class="playtime-box">
-            <p>총 플레이 <span>{{ (item.playtime_total / 60).toFixed(1) }}h</span></p>
-            <p>최근 2주 <span>{{ (item.playtime_recent_2weeks / 60).toFixed(1) }}h</span></p>
+            <p>총 플레이타임 <span>{{ (item.playtime_total / 60).toFixed(1) }} 시간</span></p>
+            <p>최근 플레이타임 <span>{{ (item.playtime_recent_2weeks / 60).toFixed(1) }} 시간</span></p>
           </div>
         </div>
       </div>
