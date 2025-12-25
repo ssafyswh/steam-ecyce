@@ -88,16 +88,16 @@ async def get_ai_review_summary(reviews):
     if not reviews: 
         return "표시할 리뷰가 없습니다."
     
-    combined_text = "\n".join(reviews[:25])
+    combined_text = "\n".join(reviews[:30])
     system_prompt = (
         "너는 게임 전문 칼럼니스트야. 제공된 스팀 유저 리뷰들을 읽고, "
         "게임의 전반적인 특징, 장점, 단점을 모두 포함한 하나의 완성된 요약문을 작성해줘. "
         "항목을 나열하는 방식이 아니라, 문맥이 이어지는 자연스러운 문단 형태로 작성해야 해. "
-        "반드시 한국어로 답변하고, 결과는 JSON 형식 {'summary': '내용'}으로 반환해."
+        "반드시 한국어로 답변하고, 분량은 200자 내외로, 결과는 JSON 형식 {'summary': '내용'}으로 반환해."
     )
     user_prompt = f"다음은 유저들의 실제 리뷰 내용들이야:\n\n{combined_text}"
     
     # 모델은 상황에 맞게 변경 가능 (예: gpt-5-nano)
-    raw_res = await get_ai_response("gpt-5-nano", system_prompt, user_prompt)
+    raw_res = await get_ai_response("gemini-2.5-flash-lite", system_prompt, user_prompt)
     result = parse_ai_json(raw_res)
     return result.get('summary', "요약을 생성할 수 없습니다.") if result else "분석 결과가 유효하지 않습니다."

@@ -51,6 +51,7 @@ def fetch_game_detail_internal(appid):
 
         return {
             "publisher": game_data.get('publishers', [''])[0],
+            "developer": game_data.get('developers', [''])[0],
             "release_date": release_date,
             "price": price,
             "description": game_data.get('short_description', ''),
@@ -111,6 +112,7 @@ class SteamLibrary(APIView):
                     detail = fetch_game_detail_internal(info['appid'])
                     if detail:
                         game.publisher = detail['publisher']
+                        game.developer = detail['developer']
                         game.release_date = detail['release_date']
                         game.price = detail['price']
                         game.description = detail['description']
@@ -139,11 +141,20 @@ class GameDetailView(APIView):
     def get(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
         now = timezone.now()
+        # 1. 필수 정보가 없거나 (새 필드 추가 등)
+        # 2. 마지막 갱신 후 3일이 지났거나
+        # 3. 출시 예정일이었던 날짜가 지나서 정보 업데이트가 필요할 때
+        need_update = (
+            not (game.description and game.developer) or 
+            (now - game.updated_at > timedelta(days=3)) or
+            (game.release_date and game.release_date <= now.date() and game.updated_at.date() < game.release_date)
+)
         
-        if not game.description or (game.updated_at and now - game.updated_at > timedelta(days=1)):
+        if need_update:
             detail = fetch_game_detail_internal(appid)
             if detail:
                 game.publisher = detail['publisher']
+                game.developer = detail['developer']
                 game.release_date = detail['release_date']
                 game.price = detail['price']
                 game.description = detail['description']
@@ -261,15 +272,16 @@ class FavoriteGame(APIView):
 class AnalyzeGameReviewsView(APIView):
     def post(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
-        summary, created = ReviewSummary.objects.get_or_create(game=game)
+        summary = ReviewSummary.objects.filter(game=game).first()
         
-        if not created and summary.status == 'COMPLETED':
+        if summary and summary.status == 'COMPLETED':
             if timezone.now() - summary.last_updated_at < timedelta(minutes=30):
                 return Response({
                     "message": "최근 분석된 데이터가 있습니다.",
                     "data": self.serialize_summary(summary)
                 })
-        
+            
+        summary, created = ReviewSummary.objects.get_or_create(game=game)
         summary.status = 'PROCESSING'
         summary.save()
         
@@ -279,10 +291,17 @@ class AnalyzeGameReviewsView(APIView):
                 summary.status = 'FAILED'
                 summary.summary_text = "분석할 리뷰가 없습니다."
                 summary.save()
+                return Response({"error": "리뷰를 찾을 수 없습니다."}, status=404)
             else:
                 ai_text = async_to_sync(get_ai_review_summary)(reviews)
-                summary.summary_text = ai_text
-                summary.status = 'COMPLETED'
+                error_messages = ["요약을 생성할 수 없습니다.", "분석 결과가 유효하지 않습니다.", "표시할 리뷰가 없습니다."]
+                if not ai_text or ai_text in error_messages:
+                    summary.status = "FAILED"
+                    summary.summary_text = ai_text if ai_text else "AI 응답이 비어있습니다."
+                else:
+                    summary.status = 'COMPLETED'
+                    summary.summary_text = ai_text
+
                 summary.save()
             
             return Response(self.serialize_summary(summary))

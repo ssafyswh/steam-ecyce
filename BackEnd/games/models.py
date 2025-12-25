@@ -9,6 +9,7 @@ class Game(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.IntegerField(default=0)
     publisher = models.CharField(max_length=255, blank=True, null=True)
+    developer = models.CharField(max_length=255, blank=True, null=True)
     header_image = models.URLField(max_length=500, blank=True, null=True)
     release_date = models.DateField(null=True, blank=True)
     genres = models.CharField(max_length=255, null=True, blank=True)
