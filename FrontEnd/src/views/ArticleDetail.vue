@@ -163,7 +163,7 @@ const formatDate = (dateString) => {
 };
 
 const goToProfile = (userId) => {
-  console.log(`${userId}번 유저 프로필로 이동`);
+  // console.log(`${userId}번 유저 프로필로 이동`);
 };
 
 

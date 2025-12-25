@@ -106,7 +106,7 @@ const fetchProfileData = async () => {
     })
     
     profileData.value = res.data
-    console.log("데이터 로드 성공:", res.data)
+    // console.log("데이터 로드 성공:", res.data)
   } catch (error) {
     console.error("데이터 로딩 실패:", error)
   }

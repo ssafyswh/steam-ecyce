@@ -49,8 +49,8 @@ const fetchOriginalData = async () => {
     const currentUserId = authStore.user?.id || authStore.user?.pk;
     const authorId = data.user;
 
-    console.log('현재 로그인 유저 ID:', currentUserId);
-    console.log('게시글 작성자 ID:', authorId);
+    // console.log('현재 로그인 유저 ID:', currentUserId);
+    // console.log('게시글 작성자 ID:', authorId);
 
     if (Number(currentUserId) !== Number(authorId)) {
       alert('수정 권한이 없습니다.');

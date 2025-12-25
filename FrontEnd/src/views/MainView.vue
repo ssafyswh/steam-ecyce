@@ -167,7 +167,7 @@ const performSearch = async (query) => {
     // 검색 결과가 없을 경우 ai 추천 결과 할당
     if (searchResults.value.length === 0) {
       recommendations.value = response.data.recommendations || [];
-      console.log("추천 데이터 확인:", recommendations.value);
+      // console.log("추천 데이터 확인:", recommendations.value);
     } else {
       recommendations.value = [];
     }
@@ -175,9 +175,9 @@ const performSearch = async (query) => {
     isSearched.value = true;
   } catch (error) {
     if (axios.isCancel(error)) {
-      console.log('이전 요청 취소됨:', query);
+      // console.log('이전 요청 취소됨:', query);
     } else {
-      console.log('검색 실패:', error);
+      // console.log('검색 실패:', error);
     }
   } finally {
     if (currentRequestTime === lastRequestTime.value) {

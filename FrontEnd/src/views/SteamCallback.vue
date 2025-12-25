@@ -20,7 +20,7 @@ onMounted(async () => {
     // 스토어를 통해 백엔드 검증 요청
     await authStore.verifySteamLogin(steamData);
 
-    console.log("로그인 성공!");
+    // console.log("로그인 성공!");
 
     // 팝업으로 열렸는지 확인 (window.opener가 있으면 팝업임)
     if (window.opener) {

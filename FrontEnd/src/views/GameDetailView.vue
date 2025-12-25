@@ -156,7 +156,7 @@ const fetchGameDetail = async () => {
       // 정보가 불완전할경우 잠시 후 재실행
       if (retryCount.value < 2) {
         retryCount.value++;
-        console.log("LOADING...");
+        // console.log("LOADING...");
         setTimeout(() => fetchGameDetail(), 1000);
       } else {
         console.error("재시도 횟수 초과");
@@ -198,7 +198,7 @@ const requestAiAnalysis = async () => {
     // 분석 완료 후 데이터 갱신
     if (response.data.data) {
       game.value.review_summary = response.data.data;
-      console.log(response.data.message); // "최근 30분 이내..." 메시지 출력
+      // console.log(response.data.message); // "최근 30분 이내..." 메시지 출력
     } else {
       game.value.review_summary = response.data;
     }

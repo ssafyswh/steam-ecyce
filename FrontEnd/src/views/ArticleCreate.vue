@@ -84,7 +84,7 @@ const submitForm = async () => {
     content: content.value,
     game_id: Number(gameInfo.value.id),
   };
-  console.log('디버깅!!!!!!', gameInfo.value, gameInfo)
+  // console.log('디버깅!!!!!!', gameInfo.value, gameInfo)
   try {
     await axios.post('http://localhost:8000/community/articles/', payload, {
       headers: { Authorization: `Token ${authStore.token}` },
