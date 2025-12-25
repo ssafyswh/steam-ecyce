@@ -51,6 +51,7 @@ def fetch_game_detail_internal(appid):
 
         return {
             "publisher": game_data.get('publishers', [''])[0],
+            "developer": game_data.get('developers', [''])[0],
             "release_date": release_date,
             "price": price,
             "description": game_data.get('short_description', ''),
@@ -111,6 +112,7 @@ class SteamLibrary(APIView):
                     detail = fetch_game_detail_internal(info['appid'])
                     if detail:
                         game.publisher = detail['publisher']
+                        game.developer = detail['developer']
                         game.release_date = detail['release_date']
                         game.price = detail['price']
                         game.description = detail['description']
@@ -139,11 +141,20 @@ class GameDetailView(APIView):
     def get(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
         now = timezone.now()
+        # 1. 필수 정보가 없거나 (새 필드 추가 등)
+        # 2. 마지막 갱신 후 3일이 지났거나
+        # 3. 출시 예정일이었던 날짜가 지나서 정보 업데이트가 필요할 때
+        need_update = (
+            not (game.description and game.developer) or 
+            (now - game.updated_at > timedelta(days=3)) or
+            (game.release_date and game.release_date <= now.date() and game.updated_at.date() < game.release_date)
+)
         
-        if not game.description or (game.updated_at and now - game.updated_at > timedelta(days=1)):
+        if need_update:
             detail = fetch_game_detail_internal(appid)
             if detail:
                 game.publisher = detail['publisher']
+                game.developer = detail['developer']
                 game.release_date = detail['release_date']
                 game.price = detail['price']
                 game.description = detail['description']
