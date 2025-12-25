@@ -12,8 +12,8 @@
 
           <!-- 네비게이션 메뉴 추가 -->
           <nav class="nav-menu">
-            <!-- <router-link to="/gameinfo" class="nav-link">게임 정보</router-link> -->
-            <router-link to="/gametotal" class="nav-link">게임정보</router-link>
+            <!-- <router-link to="/gametotal" class="nav-link">게임정보</router-link> -->
+            <router-link to="/community" class="nav-link">게임리뷰</router-link>
             <router-link to="/community" class="nav-link">커뮤니티</router-link>
             <router-link to="/worldcup" class="nav-link">월드컵</router-link>
             <router-link v-if="authStore.isAuthenticated" to="/library" class="nav-link">
@@ -177,7 +177,7 @@ body {
   transition: opacity 0.2s;
 }
 
-.logo:hover {
+.navbar .logo:hover {
   opacity: 0.8;
 }
 

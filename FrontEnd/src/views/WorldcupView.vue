@@ -351,16 +351,37 @@ const formatPlaytime = (minutes) => (minutes / 60).toFixed(1);
 .header-status h2 { font-size: 2rem; margin-bottom: 5px; color: #42b883; }
 .header-status p { color: #888; margin-bottom: 10px; }
 .match-container {
-  display: flex; justify-content: space-between; align-items: center; position: relative; height: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  gap: 20px;
+  padding: 20px 0;
 }
 .game-card {
-  flex: 1; height: 100%; border-radius: 12px; overflow: hidden; position: relative; cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s;
-  display: flex; flex-direction: column;
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  background: #fff; /* 카드 배경 */
 }
 .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(66, 184, 131, 0.3); border: 2px solid #42b883; }
-.img-wrapper { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.img-wrapper {
+  width: 100%;
+  aspect-ratio: 460 / 215; 
+  background: #000;
+  overflow: hidden;
+}
+.img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+}
 .game-info {
   height: 80px; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; border-top: 1px solid #eee;
 }

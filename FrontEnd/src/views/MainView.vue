@@ -2,10 +2,34 @@
 
 <template>
   <div class="main-container">
+    <div class="bg-decorative-layer">
+      <div class="dot-pattern"></div>
+      <div class="floating-tags">
+        <span class="tag t1">#RPG</span>
+        <span class="tag t2">#Action</span>
+        <span class="tag t3">#Indie</span>
+        <span class="tag t4">#FPS</span>
+        <span class="tag t5">#Simulation</span>
+        <span class="tag t6">#Strategy</span>
+      </div>
+    </div>
     <div class="search-wrapper">
+      <div v-if="showSecretVideo" class="video-container">
+        <iframe 
+          width="800" 
+          height="735" 
+          src="https://www.youtube.com/embed/0E15Mw7pjJw?autoplay=1" 
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allowfullscreen>
+        </iframe>
+        <button @click="showSecretVideo = false" class="close-video-btn">✕</button>
+      </div>
+
       <h1 class="logo">
-        <span class="steam">Steam</span>
-        <span class="ecyce">Ecyce</span>
+        <span class="steam" style="user-select: none;">Steam</span>
+        <span class="ecyce" @click="openEcyce" style="user-select: none;">Ecyce</span>
       </h1>
       
       <div class="search-box" :class="{ 'active': searchKeyword.length > 0 || searchResults.length > 0 }">
@@ -212,6 +236,24 @@ const goToFullSearch = () => {
   router.push({ name: 'search-results', query: { q: searchKeyword.value } });
 };
 
+// 이스터에그
+const showSecretVideo = ref(false);
+const clickCount = ref(0);
+let clickTimer = null;
+
+const openEcyce = () => {
+  clickCount.value++;
+  if (clickTimer) clearTimeout(clickTimer);
+  if (clickCount.value === 3) {
+    showSecretVideo.value = true;
+    clickCount.value = 0;
+    return;
+  }
+  clickTimer = setTimeout(() => {
+    clickCount.value = 0;
+  }, 400);
+};
+
 onMounted(() => {
   if (route.query.q) {
     searchKeyword.value = route.query.q;
@@ -230,9 +272,28 @@ watch(() => route.query.q, (newQuery) => {
 </script>
 
 <style scoped>
-/* 기존 스타일 그대로 유지 (생략된 부분은 위와 동일) */
-.main-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; background-color: #ffffff; color: #171a21; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-.search-wrapper { width: 100%; max-width: 650px; text-align: center; padding: 0 20px; }
+.main-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh; 
+  padding-bottom: 17vh;
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+.search-wrapper { 
+  width: 100%; 
+  max-width: 650px; 
+  text-align: center; 
+  padding: 0 20px; 
+  position: relative;
+  z-index: 10; /* 배경 레이어(1)보다 높은 값 */
+  /* margin: auto 제거 - 부모의 flex가 이미 중앙 정렬 중 */
+}
 .logo { font-size: 5rem; margin-bottom: 40px; font-weight: 900; letter-spacing: -2px; line-height: 1; display: flex; justify-content: center; gap: 15px; align-items: center; }
 .steam { color: #171a21; text-shadow: 2px 2px 0px #dcdcdc; }
 .ecyce { color: #66c0f4; font-weight: 300; }
@@ -362,4 +423,96 @@ input::placeholder { color: #9aa0a6; }
   margin-top: 4px;
   font-weight: 500;
 }
+
+/* MainView.vue <style scoped> 내부 하단에 추가 */
+
+.video-container {
+  margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-container iframe {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.close-video-btn {
+  background: #f1f3f4;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-video-btn:hover {
+  background: #e8eaed;
+  color: #171a21;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bg-decorative-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* 콘텐츠보다 뒤로 */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 도트 그리드 패턴 */
+.dot-pattern {
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(#dcdcdc 1.2px, transparent 1.2px);
+  background-size: 40px 40px; 
+  opacity: 0.7;
+}
+
+.floating-tags {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tag {
+  position: absolute;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #66c0f4;
+  /* 가시성을 위해 투명도를 0.2에서 0.5로 상향 */
+  opacity: 0.5; 
+  padding: 6px 14px;
+  border: 1.5px solid rgba(102, 192, 244, 0.4);
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.8); /* 흰 배경에서 더 선명하게 */
+  animation: subtleFloat 6s infinite ease-in-out;
+}
+.t1 { top: 10%; left: 8%; animation-delay: 0s; }
+.t2 { top: 15%; right: 8%; animation-delay: 1s; }
+.t3 { bottom: 15%; left: 10%; animation-delay: 2s; }
+.t4 { bottom: 12%; right: 10%; animation-delay: 3s; }
+.t5 { top: 45%; left: 5%; animation-delay: 4s; }
+.t6 { top: 50%; right: 5%; animation-delay: 5.5s; }
+
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+
 </style>
