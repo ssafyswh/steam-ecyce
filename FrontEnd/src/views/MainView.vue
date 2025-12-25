@@ -1,5 +1,4 @@
 <!-- views/MainView.vue -->
-
 <template>
   <div class="main-container">
     <div class="bg-decorative-layer">
@@ -272,236 +271,54 @@ watch(() => route.query.q, (newQuery) => {
 </script>
 
 <style scoped>
+/* 1. 레이아웃 메인 컨테이너 */
 .main-container {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start; /* 검색 결과 생성 시 위치 고정을 위해 상단 정렬 */
   align-items: center;
-  min-height: 90vh; 
-  padding-bottom: 17vh;
-  box-sizing: border-box;
+  
   width: 100%;
-  overflow: hidden;
+  min-height: 100vh;
+  padding-top: 15vh; /* 로고와 검색창의 초기 높이 결정 */
+  padding-bottom: 10vh;
+  
   background-color: #ffffff;
-}
-.search-wrapper { 
-  width: 100%; 
-  max-width: 650px; 
-  text-align: center; 
-  padding: 0 20px; 
-  position: relative;
-  z-index: 10; /* 배경 레이어(1)보다 높은 값 */
-  /* margin: auto 제거 - 부모의 flex가 이미 중앙 정렬 중 */
-}
-.logo { font-size: 5rem; margin-bottom: 40px; font-weight: 900; letter-spacing: -2px; line-height: 1; display: flex; justify-content: center; gap: 15px; align-items: center; }
-.steam { color: #171a21; text-shadow: 2px 2px 0px #dcdcdc; }
-.ecyce { color: #66c0f4; font-weight: 300; }
-.search-box { display: flex; align-items: center; background: #ffffff; border: 2px solid #e0e0e0; border-radius: 50px; padding: 15px 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; margin-bottom: 30px; }
-.search-box:hover, .search-box.active { border-color: #66c0f4; box-shadow: 0 4px 12px rgba(102, 192, 244, 0.3); }
-.search-icon { margin-right: 15px; font-size: 1.2rem; color: #66c0f4; }
-input { flex: 1; background: transparent; border: none; color: #171a21; font-size: 1.2rem; outline: none; }
-input::placeholder { color: #9aa0a6; }
-.clear-btn { background: none; border: none; color: #9aa0a6; cursor: pointer; font-size: 1.2rem; padding: 0 10px; }
-.clear-btn:hover { color: #171a21; }
-.button-group { display: flex; justify-content: center; gap: 15px; }
-.steam-btn { background: linear-gradient(90deg, #66c0f4 0%, #2D73FF 100%); color: white; border: none; padding: 12px 30px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(45, 115, 255, 0.3); }
-.steam-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(45, 115, 255, 0.4); }
-.steam-btn.secondary { background: #ffffff; color: #171a21; border: 1px solid #dfe1e5; box-shadow: none; }
-.steam-btn.secondary:hover { background: #f8f9fa; border-color: #171a21; }
-.result-list { margin-top: 25px; background: #ffffff; border: 1px solid #dfe1e5; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: left; max-height: 450px; overflow-y: auto; }
-.result-item { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f1f3f4; cursor: pointer; transition: background 0.2s; }
-.result-item:hover { background-color: #f0f8ff; }
-.thumb-wrapper { 
-  width: 90px; 
-  height: 42px; 
-  margin-right: 20px; 
-  border-radius: 3px; 
-  overflow: hidden; 
-  background: #f1f3f4; /* 밝은 배경에 어울리는 연회색 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; /* 이미지가 줄어들지 않게 고정 */
-}
-.thumb { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-}
-.info-wrapper { display: flex; flex-direction: column; }
-.game-title { font-weight: 600; color: #171a21; font-size: 1rem; }
-.appid-badge { color: #66c0f4; font-size: 0.8rem; margin-top: 2px; font-weight: 500; }
-.no-result { margin-top: 50px; color: #5f6368; }
-
-/* 플레이스홀더 전용 스타일 */
-.fallback-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  background-color: #e8eaed;
-  color: #9aa0a6;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
-.placeholder-icon {
-  font-size: 1.2rem; /* 리스트용이므로 작은 사이즈 */
-  opacity: 0.6;
-}
-
-/* 👇 [추가] 전체 보기 버튼 스타일 */
-.view-all-container {
-  padding: 10px;
-  text-align: center;
-  background: #f8f9fa;
-  border-top: 1px solid #dfe1e5;
-}
-
-.view-all-btn {
-  background: none;
-  border: none;
-  color: #66c0f4;
-  font-weight: bold;
-  font-size: 0.95rem;
-  cursor: pointer;
-  padding: 10px 20px;
-  width: 100%;
-  transition: background 0.2s;
-}
-
-.view-all-btn:hover {
-  background: #eef6fc;
-  text-decoration: underline;
-}
-
-.no-result-container {
-  margin-top: 30px;
-  text-align: left;
-}
-
-.no-result-msg {
-  text-align: center;
-  color: #8f98a0;
-  margin-bottom: 20px;
-}
-
-.recommendation-section {
-  margin-top: 20px;
-  text-align: left;
-}
-
-/* 추천 섹션 내의 리스트는 상단 여백을 줄임 */
-.recommendation-section .result-list {
-  margin-top: 10px;
-}
-
-.ai-recommend-list {
-  border-color: #66c0f4;
-  background: #fdfdff;
-}
-
-.ai-item:hover {
-  background-color: #eef6fc;
-}
-
-.recommend-title {
-  font-size: 0.9rem;
-  color: #2D73FF;
-  margin-bottom: 8px;
-  font-weight: bold;
-  padding-left: 5px;
-}
-
-.recommend-badge {
-  font-size: 0.75rem;
-  color: #2D73FF;
-  background: rgba(45, 115, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-  width: fit-content;
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-/* MainView.vue <style scoped> 내부 하단에 추가 */
-
-.video-container {
-  margin-bottom: 20px;
-  animation: fadeIn 0.5s ease-in-out;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.video-container iframe {
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.close-video-btn {
-  background: #f1f3f4;
-  border: none;
-  padding: 5px 15px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.close-video-btn:hover {
-  background: #e8eaed;
-  color: #171a21;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* 2. 배경 장식 레이어 */
 .bg-decorative-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1; /* 콘텐츠보다 뒤로 */
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
   user-select: none;
 }
 
-/* 도트 그리드 패턴 */
 .dot-pattern {
   width: 100%;
   height: 100%;
   background-image: radial-gradient(#dcdcdc 1.2px, transparent 1.2px);
-  background-size: 40px 40px; 
-  opacity: 0.7;
-}
-
-.floating-tags {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  background-size: 40px 40px;
+  opacity: 0.6;
 }
 
 .tag {
   position: absolute;
+  padding: 6px 14px;
   font-size: 0.85rem;
   font-weight: 700;
   color: #66c0f4;
-  /* 가시성을 위해 투명도를 0.2에서 0.5로 상향 */
-  opacity: 0.5; 
-  padding: 6px 14px;
-  border: 1.5px solid rgba(102, 192, 244, 0.4);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(102, 192, 244, 0.3);
   border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.8); /* 흰 배경에서 더 선명하게 */
+  opacity: 0.5;
   animation: subtleFloat 6s infinite ease-in-out;
 }
+
 .t1 { top: 10%; left: 8%; animation-delay: 0s; }
 .t2 { top: 15%; right: 8%; animation-delay: 1s; }
 .t3 { bottom: 15%; left: 10%; animation-delay: 2s; }
@@ -511,8 +328,113 @@ input::placeholder { color: #9aa0a6; }
 
 @keyframes subtleFloat {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(2deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
 }
 
+/* 3. 콘텐츠 영역 (검색창 & 로고) */
+.search-wrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 650px;
+  padding: 0 20px;
+  text-align: center;
+}
 
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+.steam { color: #171a21; text-shadow: 2px 2px 0px #dcdcdc; }
+.ecyce { color: #66c0f4; font-weight: 300; }
+
+/* 검색 박스 */
+.search-box {
+  display: flex;
+  align-items: center;
+  padding: 15px 25px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  margin-bottom: 30px;
+}
+
+.search-box.active, .search-box:focus-within {
+  border-color: #66c0f4;
+  box-shadow: 0 4px 12px rgba(102, 192, 244, 0.3);
+}
+
+.search-icon { margin-right: 15px; font-size: 1.2rem; color: #66c0f4; }
+.search-box input { flex: 1; border: none; outline: none; font-size: 1.2rem; background: transparent; color: #171a21; }
+.clear-btn { background: none; border: none; color: #9aa0a6; cursor: pointer; font-size: 1.2rem; padding: 0 10px; }
+
+/* 4. 결과 리스트 및 아이템 */
+.result-list {
+  margin-top: 25px;
+  background: #ffffff;
+  border: 1px solid #dfe1e5;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  overflow: hidden;
+  text-align: left;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.result-item:hover { background-color: #f0f8ff; }
+
+.thumb-wrapper {
+  width: 90px; height: 42px;
+  margin-right: 20px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #f1f3f4;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.thumb { width: 100%; height: 100%; object-fit: cover; }
+.game-title { font-weight: 600; color: #171a21; font-size: 1rem; }
+
+/* 5. 추천 섹션 및 특수 요소 */
+.recommendation-section { margin-top: 20px; text-align: left; }
+.recommend-title { font-size: 0.9rem; color: #2D73FF; font-weight: bold; margin-bottom: 8px; padding-left: 5px; }
+.ai-recommend-list { border-color: #66c0f4; background: #fdfdff; }
+.recommend-badge {
+  font-size: 0.75rem; color: #2D73FF; background: rgba(45, 115, 255, 0.1);
+  padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block;
+}
+
+.view-all-container { padding: 10px; text-align: center; background: #f8f9fa; border-top: 1px solid #dfe1e5; }
+.view-all-btn { background: none; border: none; color: #66c0f4; font-weight: bold; cursor: pointer; width: 100%; padding: 10px; }
+.view-all-btn:hover { text-decoration: underline; }
+
+.no-result-container { margin-top: 30px; text-align: left; color: #5f6368; }
+
+/* 6. 비디오 및 기타 */
+.video-container { margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.video-container iframe { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.close-video-btn { background: #f1f3f4; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+.close-video-btn:hover { background: #e8eaed; }
+
+/* 플레이스홀더 */
+.fallback-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: #e8eaed; color: #9aa0a6; }
 </style>
