@@ -1,5 +1,4 @@
-<!-- ArticleCreate.vue -->
-
+<!-- views/ArticleCreate.vue -->
 <template>
   <div class="create-article">
     <div class="container">
@@ -36,7 +35,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from 'vue';

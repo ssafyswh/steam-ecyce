@@ -1,83 +1,4 @@
-<!-- views/ProfileView.vue -->
-<script setup>
-import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
-import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-const authStore = useAuthStore();
-
-const games = ref([]);
-const isLoading = ref(false);
-const sortBy = ref('total');
-const sortOptions = [
-  { label: '제목', value: 'title'},
-  { label: '총 플레이타임', value: 'total'},
-  { label: '최근 플레이타임(2주)', value: 'recent'},
-]
-
-// 게임 목록 정렬 (제목 / 총 플레이 / 최근 플레이)
-const sortedGames = computed(() => {
-  return [...games.value].sort((a, b) => {
-    if (sortBy.value === 'title') {
-      return a.game.title.localeCompare(b.game.title);
-    } else if (sortBy.value === 'total') {
-      return b.playtime_total - a.playtime_total;
-    } else if (sortBy.value === 'recent') {
-      return b.playtime_recent_2weeks - a.playtime_recent_2weeks;
-    }
-    return 0;
-  })
-})
-
-const steamSettingsUrl = computed(() => {
-  // authStore에 저장된 스팀 아이디 필드명을 확인해 주세요 (예: authStore.user.steam_id)
-  const steamId = authStore.user?.steam_id; 
-  return steamId 
-    ? `https://steamcommunity.com/profiles/${steamId}/edit/settings`
-    : 'https://steamcommunity.com/my/edit/settings'; // 아이디가 없을 때의 기본 경로
-});
-
-// DB에 저장된 게임 목록 가져오기
-const fetchLibrary = async () => {
-  try {
-    const response = await axios.get('http://localhost:8000/games/library/', {
-      headers: { Authorization: `Token ${authStore.token}` }
-      // 만약 session/cookie 방식이라면 withCredentials: true
-    });
-    games.value = response.data;
-  } catch (error) {
-    console.error("게임 목록 로드 실패:", error);
-  }
-};
-
-// 스팀 API와 동기화 요청
-const syncLibrary = async () => {
-  if (isLoading.value) return;
-  isLoading.value = true;
-  
-  try {
-    const response = await axios.post('http://localhost:8000/games/library/', {}, {
-      // headers 또는 withCredentials 설정 확인
-      withCredentials: true 
-    });
-    alert(`동기화 완료! ${response.data.updated_count}개의 게임이 업데이트 되었습니다.`);
-    
-    // 동기화 끝난 후 목록 다시 불러오기
-    await fetchLibrary();
-  } catch (error) {
-    console.error("동기화 실패:", error);
-    alert("스팀 연동에 실패했습니다.\n 스팀 프로필의 공개 설정에서 게임 세부 정보가 '공개'로 되어있는지 확인해주세요!");
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchLibrary();
-});
-</script>
+<!-- views/LibraryView.vue -->
 <template>
   <div class="profile-container">
     <div v-if="isLoading" class="loading-overlay">
@@ -98,10 +19,18 @@ onMounted(() => {
         </div>
     
         <div class="header-actions">
-          <button v-if="games.length !== 0" @click="$router.push('/recommend')" class="ai-btn">
+          <button 
+            v-if="games.length !== 0" 
+            @click="$router.push('/recommend')" 
+            class="ai-btn"
+          >
             🤖 AI 취향 분석
           </button>
-          <button @click="syncLibrary" :disabled="isLoading" class="sync-btn-modern">
+          <button 
+            @click="syncLibrary" 
+            :disabled="isLoading" 
+            class="sync-btn-modern"
+          >
             {{ isLoading ? '동기화 중...' : '🔄 라이브러리 최신화' }}
           </button>
         </div>
@@ -136,7 +65,12 @@ onMounted(() => {
     </div>
 
     <div class="game-grid">
-      <div v-for="item in sortedGames" :key="item.game.appid" class="game-card" @click="$router.push(`/game/${item.game.appid}`)">
+      <div 
+        v-for="item in sortedGames" 
+        :key="item.game.appid" 
+        class="game-card" 
+        @click="$router.push(`/game/${item.game.appid}`)"
+      >
         <div class="image-wrapper">
           <img :src="item.game.header_image" :alt="item.game.title" loading="lazy" />
         </div>
@@ -152,25 +86,101 @@ onMounted(() => {
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios';
+import { useAuthStore } from '@/stores/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const games = ref([]);
+const isLoading = ref(false);
+const sortBy = ref('total');
+
+const sortOptions = [
+  { label: '제목', value: 'title'},
+  { label: '총 플레이타임', value: 'total'},
+  { label: '최근 플레이타임(2주)', value: 'recent'},
+]
+
+// 게임 목록 정렬 (제목 / 총 플레이 / 최근 플레이)
+const sortedGames = computed(() => {
+  return [...games.value].sort((a, b) => {
+    if (sortBy.value === 'title') {
+      return a.game.title.localeCompare(b.game.title);
+    } else if (sortBy.value === 'total') {
+      return b.playtime_total - a.playtime_total;
+    } else if (sortBy.value === 'recent') {
+      return b.playtime_recent_2weeks - a.playtime_recent_2weeks;
+    }
+    return 0;
+  })
+})
+
+const steamSettingsUrl = computed(() => {
+  const steamId = authStore.user?.steam_id; 
+  return steamId 
+    ? `https://steamcommunity.com/profiles/${steamId}/edit/settings`
+    : 'https://steamcommunity.com/my/edit/settings'; // 아이디가 없을 때의 기본 경로
+});
+
+// DB에 저장된 게임 목록 가져오기
+const fetchLibrary = async () => {
+  try {
+    const response = await axios.get('http://localhost:8000/games/library/', {
+      headers: { Authorization: `Token ${authStore.token}` }
+    });
+    games.value = response.data;
+  } catch (error) {
+    console.error("게임 목록 로드 실패:", error);
+  }
+};
+
+// 스팀 API와 동기화 요청
+const syncLibrary = async () => {
+  if (isLoading.value) return;
+  
+  isLoading.value = true;
+  try {
+    const response = await axios.post('http://localhost:8000/games/library/', {}, {
+      // headers 또는 withCredentials 설정 확인
+      withCredentials: true 
+    });
+    alert(`동기화 완료! ${response.data.updated_count}개의 게임이 업데이트 되었습니다.`);
+    
+    // 동기화 끝난 후 목록 다시 불러오기
+    await fetchLibrary();
+  } catch (error) {
+    console.error("동기화 실패:", error);
+    alert("스팀 연동에 실패했습니다.\n 스팀 프로필의 공개 설정에서 게임 세부 정보가 '공개'로 되어있는지 확인해주세요!");
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchLibrary();
+});
+</script>
+
 <style scoped>
-/* 폰트 및 배경 설정 */
+/* 1. 레이아웃 메인 컨테이너 */
 .profile-container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 40px 20px;
-  background-color: #f8f9fa; /* 아주 밝은 그레이 배경 */
   min-height: 100vh;
+  background-color: #f8f9fa; /* 아주 밝은 그레이 배경 */
   font-family: 'Pretendard', -apple-system, sans-serif;
   color: #333;
 }
 
-/* 로딩 오버레이 */
+/* 2. 로딩 오버레이 */
 .loading-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background-color: rgba(255, 255, 255, 0.9);
   display: flex;
   justify-content: center;
@@ -188,15 +198,18 @@ onMounted(() => {
   width: 45px;
   height: 45px;
   border: 4px solid #e9ecef;
-  border-top-color: #3498db;
+  border-top-color: #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 20px;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { 
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); } 
+}
 
-/* 헤더 카드 */
+/* 3. 헤더 카드 섹션 */
 .profile-header-card {
   background: #ffffff;
   border-radius: 20px;
@@ -230,12 +243,12 @@ onMounted(() => {
   font-weight: 600;
 }
 
-/* 버튼 스타일 */
 .header-actions {
   display: flex;
   gap: 10px;
 }
 
+/* 4. 버튼 스타일 */
 .ai-btn {
   background: #6366f1;
   color: white;
@@ -269,7 +282,12 @@ onMounted(() => {
   border-color: #ccc;
 }
 
-/* 헤더 푸터 안내 */
+.sync-btn-modern:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 5. 헤더 안내 문구 */
 .header-footer {
   margin-top: 25px;
   padding-top: 20px;
@@ -292,10 +310,22 @@ onMounted(() => {
   margin-right: 6px;
 }
 
-/* 정렬 필터 (칩 스타일) */
+.privacy-link {
+  color: #4f46e5;
+  text-decoration: underline;
+  font-weight: 800;
+  transition: color 0.2s;
+}
+
+.privacy-link:hover {
+  color: #312e81;
+}
+
+/* 6. 정렬 필터 (칩 스타일) */
 .sort-container {
   margin-bottom: 30px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .chip-group {
@@ -323,7 +353,7 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* 게임 리스트 그리드 */
+/* 7. 게임 리스트 그리드 */
 .game-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -338,6 +368,8 @@ onMounted(() => {
   transition: all 0.3s ease;
   cursor: pointer;
   border: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-card:hover {
@@ -345,15 +377,23 @@ onMounted(() => {
   box-shadow: 0 12px 25px rgba(0,0,0,0.1);
 }
 
-.image-wrapper img {
+.image-wrapper {
   width: 100%;
   aspect-ratio: 460 / 215;
+  overflow: hidden;
+  background: #f1f3f4;
+}
+
+.image-wrapper img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
 .game-info {
   padding: 16px;
+  flex-grow: 1;
 }
 
 .game-title {
@@ -385,8 +425,9 @@ onMounted(() => {
   font-weight: 700;
 }
 
-/* 빈 상태 */
+/* 8. 빈 상태 */
 .empty-state {
+  grid-column: 1 / -1;
   text-align: center;
   padding: 80px 0;
   color: #aaa;
@@ -395,16 +436,5 @@ onMounted(() => {
 .empty-icon {
   font-size: 3rem;
   margin-bottom: 20px;
-}
-
-.privacy-link {
-  color: #4f46e5; /* 기존 포인트 컬러와 통일 */
-  text-decoration: underline;
-  font-weight: 800;
-  transition: color 0.2s;
-}
-
-.privacy-link:hover {
-  color: #312e81; /* 호버 시 조금 더 진하게 */
 }
 </style>

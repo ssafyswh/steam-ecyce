@@ -90,7 +90,6 @@ onMounted(fetchOriginalData);
 </script>
 
 <style scoped>
-/* 기존 Create 스타일과 유사하게 유지하되 게임 정보 미리보기 추가 */
 .update-container { max-width: 700px; margin: 40px auto; padding: 20px; }
 .game-info-preview { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
 .mini-game-img { width: 100px; height: 60px; object-fit: cover; border-radius: 4px; }
