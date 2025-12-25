@@ -272,15 +272,16 @@ class FavoriteGame(APIView):
 class AnalyzeGameReviewsView(APIView):
     def post(self, request, appid):
         game = get_object_or_404(Game, appid=appid)
-        summary, created = ReviewSummary.objects.get_or_create(game=game)
+        summary = ReviewSummary.objects.filter(game=game).first()
         
-        if not created and summary.status == 'COMPLETED':
+        if summary and summary.status == 'COMPLETED':
             if timezone.now() - summary.last_updated_at < timedelta(minutes=30):
                 return Response({
                     "message": "최근 분석된 데이터가 있습니다.",
                     "data": self.serialize_summary(summary)
                 })
-        
+            
+        summary, created = ReviewSummary.objects.get_or_create(game=game)
         summary.status = 'PROCESSING'
         summary.save()
         
@@ -290,10 +291,17 @@ class AnalyzeGameReviewsView(APIView):
                 summary.status = 'FAILED'
                 summary.summary_text = "분석할 리뷰가 없습니다."
                 summary.save()
+                return Response({"error": "리뷰를 찾을 수 없습니다."}, status=404)
             else:
                 ai_text = async_to_sync(get_ai_review_summary)(reviews)
-                summary.summary_text = ai_text
-                summary.status = 'COMPLETED'
+                error_messages = ["요약을 생성할 수 없습니다.", "분석 결과가 유효하지 않습니다.", "표시할 리뷰가 없습니다."]
+                if not ai_text or ai_text in error_messages:
+                    summary.status = "FAILED"
+                    summary.summary_text = ai_text if ai_text else "AI 응답이 비어있습니다."
+                else:
+                    summary.status = 'COMPLETED'
+                    summary.summary_text = ai_text
+
                 summary.save()
             
             return Response(self.serialize_summary(summary))
