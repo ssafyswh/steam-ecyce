@@ -97,7 +97,7 @@ const formatDate = (dateString) => {
 };
 
 const goBack = () => {
-  router.push('/profile');
+  router.push('/library');
 };
 
 const goToDetail = (appid) => {
