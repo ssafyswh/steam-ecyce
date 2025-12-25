@@ -1,3 +1,4 @@
+<!-- views/UserRecommendCreate.vue -->
 <template>
   <div class="review-create-container">
     <div class="review-card">
@@ -73,6 +74,10 @@ const reviewData = reactive({
   rating_optimization: 0,
   content: '',
 })
+
+const setRating = (key, score) => {
+  reviewData[key] = score
+}
 
 // 기존 리뷰 존재 여부 확인 및 데이터 로드
 const loadExistingReview = async () => {
