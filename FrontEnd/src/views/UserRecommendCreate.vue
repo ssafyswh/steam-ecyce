@@ -140,11 +140,9 @@ const submitReview = async () => {
     if (reviewId.value) {
       // [수정] 기존 리뷰가 있으면 PUT 요청
       response = await axios.put(`http://localhost:8000/community/reviews/${reviewId.value}/`, payload, config)
-      alert('리뷰가 수정되었습니다.')
     } else {
       // [신규] 없으면 POST 요청
       response = await axios.post('http://localhost:8000/community/reviews/', payload, config)
-      alert('리뷰가 등록되었습니다.')
     }
 
     router.push({ name: 'UserRecommendDetail', params: { reviewId: response.data.id } })

@@ -53,7 +53,7 @@
         </button>
 
         <!-- 로딩 중 뒤로가기 막기 -->
-        <button @click="goBack" class="back-btn" :disabled="isLoading">
+        <button @click="$router.push({ name: 'library' })" class="back-btn" :disabled="isLoading">
           ⬅ 내 라이브러리
         </button>
       </div>

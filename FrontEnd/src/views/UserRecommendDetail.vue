@@ -10,7 +10,7 @@
           <h1 class="game-title">{{ review.game_title }}</h1>
         </div>
         
-        <div class="author-box" @click="$router.push(`/${review.user_id}`)">
+        <div class="author-box">
           <img :src="review.user_avatar || '/default-avatar.png'" alt="Avatar" class="author-avatar">
           <div class="author-info">
             <span class="author-name">{{ review.user_nickname || '익명 사용자' }}</span>
