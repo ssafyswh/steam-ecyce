@@ -129,6 +129,20 @@ def Logout_view(request):
     
     return response
 
+class UserWithdrawView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.delete()  # DB에서 유저 삭제
+        
+        response = Response({"message": "회원 탈퇴가 완료되었습니다."}, status=status.HTTP_204_NO_CONTENT)
+        
+        # 쿠키 삭제 (로그아웃 처리)
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        
+        return response
 
 class MyPageView(APIView):
     # 인증된 사용자만 접근 가능
