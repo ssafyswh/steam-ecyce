@@ -62,7 +62,7 @@
         </div>
 
         <div class="action-footer">
-          <button @click="$router.go(-1)" class="btn btn-secondary">목록으로 돌아가기</button>
+          <button @click="$router.push({ name: 'community' })" class="btn btn-secondary">목록으로 돌아가기</button>
           <div class="owner-actions" v-if="isMyReview">
             <button @click="deleteReview" class="btn btn-danger">리뷰 삭제</button>
           </div>
