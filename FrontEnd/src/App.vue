@@ -13,7 +13,6 @@
           <!-- 네비게이션 메뉴 추가 -->
           <nav class="nav-menu">
             <!-- <router-link to="/gametotal" class="nav-link">게임정보</router-link> -->
-            <router-link to="/community" class="nav-link">게임리뷰</router-link>
             <router-link to="/community" class="nav-link">커뮤니티</router-link>
             <router-link to="/worldcup" class="nav-link">월드컵</router-link>
             <router-link v-if="authStore.isAuthenticated" to="/library" class="nav-link">
