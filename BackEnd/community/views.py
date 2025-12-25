@@ -34,6 +34,22 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
+    def get_queryset(self):
+        """
+        프론트엔드에서 ?game_id=... 파라미터를 보낼 경우,
+        현재 로그인한 유저가 해당 게임에 작성한 리뷰만 필터링하여 반환합니다.
+        """
+        queryset = super().get_queryset()
+        game_id = self.request.query_params.get('game_id')
+        
+        # game_id가 쿼리 파라미터로 들어온 경우 필터링 수행
+        if game_id is not None:
+            # 현재 로그인한 유저의 리뷰만 조회 (수정용 데이터를 찾기 위함)
+            # serializers.py에서 appid를 기준으로 조회했으므로 game__appid를 사용합니다.
+            queryset = queryset.filter(game__appid=game_id, user=self.request.user)
+            
+        return queryset
+
     def perform_create(self, serializer):
-        # user 정보는 request에서 가져와 저장
+        # 신규 등록 시 현재 로그인한 유저 정보를 저장
         serializer.save(user=self.request.user)

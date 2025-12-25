@@ -1,4 +1,3 @@
-<!-- views/UserRecommendCreate.vue -->
 <template>
   <div class="review-create-container">
     <div class="review-card">
@@ -45,9 +44,8 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
@@ -56,19 +54,8 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-// URL 파라미터에서 game_id 추출
 const gameId = route.params.id || route.params.gameId
-
-// 페이지 진입 시 로그인 체크
-onMounted(() => {
-  const token = authStore.token || localStorage.getItem('access_token') || localStorage.getItem('token');
-  
-  // 토큰도 없고 로그인 플래그도 없으면 튕겨냄
-  if (!token && !localStorage.getItem('isLoggedIn')) {
-    alert('로그인이 필요한 서비스입니다.')
-    router.push({ name: 'login' })
-  }
-})
+const reviewId = ref(null) // 기존 리뷰가 있을 경우 ID 저장
 
 const metrics = {
   rating_fun: '재미',
@@ -87,66 +74,87 @@ const reviewData = reactive({
   content: '',
 })
 
-const setRating = (key, score) => {
-  reviewData[key] = score
+// 기존 리뷰 존재 여부 확인 및 데이터 로드
+const loadExistingReview = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8000/community/reviews/`, {
+      params: { game_id: gameId },
+      withCredentials: true
+    })
+    
+    // [에러 해결] DRF 페이지네이션으로 인해 데이터는 results 안에 있습니다.
+    const results = response.data.results || response.data;
+    
+    // 이미 views.py에서 본인 리뷰만 나오도록 필터링했으므로 첫 번째 항목을 가져옵니다.
+    if (results && results.length > 0) {
+      const myReview = results[0];
+      
+      reviewId.value = myReview.id
+      reviewData.rating_fun = myReview.rating_fun
+      reviewData.rating_story = myReview.rating_story
+      reviewData.rating_control = myReview.rating_control
+      reviewData.rating_sound = myReview.rating_sound
+      reviewData.rating_optimization = myReview.rating_optimization
+      reviewData.content = myReview.content
+    }
+  } catch (error) {
+    console.error("기존 리뷰 로드 실패:", error)
+  }
 }
 
+onMounted(() => {
+  if (!authStore.isAuthenticated) {
+    alert('로그인이 필요합니다.')
+    router.push({ name: 'login' })
+    return
+  }
+  loadExistingReview()
+})
+
 const submitReview = async () => {
-  // 유효성 검사
+  // 유효성 검사 로직 (기존과 동일)
   for (const key in metrics) {
     if (reviewData[key] === 0) {
       alert(`${metrics[key]} 점수를 선택해주세요!`)
       return
     }
   }
-
   if (reviewData.content.length < 10) {
     alert('리뷰 내용을 10자 이상 작성해주세요.')
     return
   }
 
   try {
-    const token = authStore.token || localStorage.getItem('access_token') || localStorage.getItem('token');
-    const headers = token ? { Authorization: `Token ${token}` } : {};
-
-    const response = await axios.post('http://127.0.0.1:8000/community/reviews/', {
-      game_id: gameId,
-      ...reviewData
-    }, {
-      headers: headers,
-      withCredentials: true 
-    })
-
-    alert('리뷰가 성공적으로 등록되었습니다.')
-    
-    // 성공 시 상세 페이지로 이동
-    const newReviewId = response.data.id; 
-    router.push({ 
-      name: 'UserRecommendDetail', 
-      params: { reviewId: newReviewId } 
-    });
-    
-  } catch (error) {
-    console.error(error)
-    if (error.response && error.response.data) {
-      const msg = error.response.data.detail || JSON.stringify(error.response.data);
-      alert(msg);
-    } else {
-      alert('리뷰 작성 중 오류가 발생했습니다.')
+    const payload = { game_id: Number(gameId), ...reviewData }
+    const config = {
+      headers: { Authorization: `Bearer ${authStore.token}` },
+      withCredentials: true
     }
-  }
-}
 
-const goBack = () => {
-  router.go(-1)
+    let response
+    if (reviewId.value) {
+      // [수정] 기존 리뷰가 있으면 PUT 요청
+      response = await axios.put(`http://localhost:8000/community/reviews/${reviewId.value}/`, payload, config)
+      alert('리뷰가 수정되었습니다.')
+    } else {
+      // [신규] 없으면 POST 요청
+      response = await axios.post('http://localhost:8000/community/reviews/', payload, config)
+      alert('리뷰가 등록되었습니다.')
+    }
+
+    router.push({ name: 'UserRecommendDetail', params: { reviewId: response.data.id } })
+  } catch (error) {
+    alert('처리 중 오류가 발생했습니다.')
+  }
 }
 </script>
 
 <style scoped>
+/* 디자인은 유지 */
 .review-create-container {
   min-height: 100vh;
   padding: 40px 20px;
-  background-color: #f0f2f5; /* 전체 배경색 */
+  background-color: #f9fbfd;
 }
 
 .review-card {
@@ -161,7 +169,7 @@ const goBack = () => {
 .page-title {
   text-align: center;
   margin: 0 0 10px 0;
-  color: #333;
+  color: #2c3e50;
   font-size: 1.8rem;
   font-weight: 700;
 }
@@ -213,7 +221,7 @@ const goBack = () => {
 }
 
 .star-icon.filled {
-  color: #ffc107; /* 채워진 별 색상 */
+  color: #ffc107; 
 }
 
 .score-text {
@@ -248,8 +256,8 @@ const goBack = () => {
 
 .review-textarea:focus {
   outline: none;
-  border-color: #ffc107;
-  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+  border-color: #42b883;
+  box-shadow: 0 0 0 3px rgba(66, 184, 131, 0.2);
 }
 
 /* 버튼 영역 */
@@ -261,8 +269,8 @@ const goBack = () => {
 
 .submit-btn {
   padding: 14px 40px;
-  background-color: #ffc107;
-  color: #333;
+  background-color: #42b883;
+  color: white;
   border: none;
   border-radius: 6px;
   font-weight: bold;
@@ -273,7 +281,7 @@ const goBack = () => {
 }
 
 .submit-btn:hover {
-  background-color: #e0a800;
+  background-color: #36a273;
 }
 
 .cancel-btn {

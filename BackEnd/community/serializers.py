@@ -46,46 +46,58 @@ class ArticleSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
     
 class ReviewSerializer(serializers.ModelSerializer):
+    # 1. [조회용] 프론트엔드 표시 및 이동을 위한 필드 (ReadOnly)
     user_nickname = serializers.ReadOnlyField(source='user.nickname')
     user_avatar = serializers.ReadOnlyField(source='user.avatar')
     game_title = serializers.ReadOnlyField(source='game.title')
-
+    game_image = serializers.ReadOnlyField(source='game.header_image') # 사진 출력용
+    game_appid = serializers.ReadOnlyField(source='game.appid')       # 상세페이지 이동용(Steam ID)
+    
+    # 2. [계산용] 플레이 타임 정보
     playtime_info = serializers.SerializerMethodField()
-
-    # 쓰기 전용: 프론트에서 넘어오는 game_id
+    
+    # 3. [생성용] 프론트에서 POST 보낼 때 사용하는 필드 (WriteOnly)
     game_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Review
         fields = [
             'id', 'user', 'user_nickname', 'user_avatar',
-            'game_id', 'game_title',
+            'game_id', 'game_appid', 'game_title', 'game_image',
             'rating_fun', 'rating_story', 'rating_control', 'rating_sound', 'rating_optimization',
-            'content', 'created_at', 'updated_at'
+            'content', 'playtime_info',
+            'created_at', 'updated_at'
         ]
-        read_only_fields = ('user', 'game_title')
+        # user는 request.user에서 가져오므로 읽기 전용으로 설정
+        read_only_fields = ('user', 'game_title', 'game_image', 'game_appid')
 
-    def create(self, validated_data):
-        game_id = validated_data.pop('game_id')
-        game = Game.objects.get(appid=game_id)
-        
-        # 이미 리뷰를 작성했는지 검증 (선택 사항)
-        user = self.context['request'].user
-        if Review.objects.filter(user=user, game=game).exists():
-            raise serializers.ValidationError("이미 이 게임에 대한 리뷰를 작성했습니다.")
-            
-        review = Review.objects.create(game=game, **validated_data)
-        return review
-    
     def get_playtime_info(self, obj):
         try:
-            # 해당 유저와 해당 게임의 라이브러리 정보를 찾음
             library = UserGameLibrary.objects.get(user=obj.user, game=obj.game)
             return {
-                # 분 단위 데이터를 시간 단위로 변환 (소수점 1자리)
                 'total_hours': round(library.playtime_total / 60, 1),
                 'recent_hours': round(library.playtime_recent_2weeks / 60, 1)
             }
-        except UserGameLibrary.DoesNotExist:
-            # 라이브러리에 없는 게임을 리뷰할 경우(거의 없겠지만)
+        except (UserGameLibrary.DoesNotExist, AttributeError):
             return {'total_hours': 0, 'recent_hours': 0}
+
+    def create(self, validated_data):
+        # 프론트엔드에서 보낸 game_id(Steam AppID) 추출
+        game_id = validated_data.pop('game_id')
+        
+        try:
+            # DB에서 해당 appid를 가진 게임 객체 조회
+            game = Game.objects.get(appid=game_id)
+        except Game.DoesNotExist:
+            raise serializers.ValidationError({"game_id": "존재하지 않는 게임입니다."})
+        
+        # 현재 접속 중인 유저 정보 가져오기
+        user = self.context['request'].user
+        
+        # 중복 리뷰 체크
+        if Review.objects.filter(user=user, game=game).exists():
+            raise serializers.ValidationError({"detail": "이미 이 게임에 대한 리뷰를 작성했습니다."})
+            
+        # 리뷰 생성 및 게임 객체 연결
+        review = Review.objects.create(user=user, game=game, **validated_data)
+        return review
