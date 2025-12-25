@@ -1,3 +1,4 @@
+#ai_analysis/views.py
 from django.shortcuts import get_object_or_404
 from asgiref.sync import async_to_sync
 from rest_framework.views import APIView
@@ -35,7 +36,7 @@ class GameRecommendationView(APIView):
 
         try:
             # 3. AI 분석 실행 (gpt-5-nano 사용)
-            result_json = async_to_sync(self.get_ai_analysis)(game_list_str, 'gpt-5-nano')
+            result_json = async_to_sync(self.get_ai_analysis)(game_list_str, 'gemini-2.5-flash-lite')
             
             if not result_json:
                 return Response({"error": "AI 분석 결과 파싱에 실패했습니다."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
