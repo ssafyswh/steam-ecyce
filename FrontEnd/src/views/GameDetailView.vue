@@ -1,3 +1,4 @@
+<!-- views/GameDetailView.vue -->
 <template>
   <div v-if="!isLoading && game &&game.title" class="detail-wrapper">
     <div class="banner-section" :style="{ backgroundImage: `url(${game.header_image})` }">
@@ -99,6 +100,7 @@
           </div>
           
           <button class="back-btn" @click="goToSteam" >STEAM 페이지로 이동</button>
+          <button class="back-btn" @click="$router.push({ name: 'UserRecommendCreate', params: { gameId: game.appid } })">리뷰 작성하기</button>
         </div>
       </div>
     </div>

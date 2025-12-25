@@ -15,6 +15,9 @@ import ArticleDetail from '@/views/ArticleDetail.vue'
 import ArticleUpdate from '@/views/ArticleUpdate.vue'
 import LibraryView from '@/views/LibraryView.vue' // 기존 ProfileView의 이름을 변경했다고 가정
 import MyPageView from '@/views/MyPageView.vue'
+import UserRecommendCreate from '@/views/UserRecommendCreate.vue'
+import UserRecommendDetail from '@/views/UserRecommendDetail.vue'
+import GameTotalView from '@/views/GameTotalView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -90,6 +93,25 @@ const router = createRouter({
       path: '/community/update/:id',
       name: 'ArticleUpdate',
       component: ArticleUpdate,
+    },
+    {
+      path: '/community/review/:gameId/create',
+      name: 'UserRecommendCreate',
+      component: UserRecommendCreate,
+      props: true
+    },
+    {
+      // 상세 조회: 작성 후 이동하거나 리스트에서 클릭했을 때
+      path: '/community/review/:reviewId',
+      name: 'UserRecommendDetail',
+      component: UserRecommendDetail,
+      props: true
+    },
+    {
+      // 상세 조회: 작성 후 이동하거나 리스트에서 클릭했을 때
+      path: '/gametotal',
+      name: 'GameTotalView',
+      component: GameTotalView
     },
     {
       path: '',

@@ -2,8 +2,8 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404  # [추가] get_object_or_404 필요
-from .models import Article, Comment
-from .serializers import ArticleSerializer, CommentSerializer
+from .models import Article, Comment, Review
+from .serializers import ArticleSerializer, CommentSerializer, ReviewSerializer
 from .permissions import IsAuthorOrReadOnly
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -28,3 +28,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         
         # 시리얼라이저의 save 메서드에 user와 article 객체를 넘겨줍니다.
         serializer.save(user=self.request.user, article=article)
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all().order_by('-created_at')
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def perform_create(self, serializer):
+        # user 정보는 request에서 가져와 저장
+        serializer.save(user=self.request.user)

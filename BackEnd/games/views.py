@@ -15,6 +15,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from ai_analysis.views import get_search_recommendations
 from ai_analysis.models import ReviewSummary
 from ai_analysis.utils import fetch_steam_reviews, get_ai_review_summary
+from django.db.models import Q
 
 def get_or_create_review_summary(game):
     # 1. 이미 완료된 요약이 있는지 확인
@@ -359,4 +360,62 @@ class AnalyzeGameReviewsView(APIView):
             "tokens_used": summary.tokens_used
         }
 
-    
+class GameListView(APIView):
+    def get(self, request):
+        # 1. 파라미터 수신
+        genre_param = request.GET.get('genre', '') # "Action,RPG" 형태로 들어옴
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        sort_option = request.GET.get('sort', 'recent') 
+        limit = int(request.GET.get('limit', 24))
+        offset = int(request.GET.get('offset', 0))
+        
+        qs = Game.objects.all()
+
+        # 2. 다중 장르 필터링 (OR 조건: 선택한 장르 중 하나라도 포함되면 검색)
+        # 만약 AND 조건(모두 포함)을 원하시면 Q 결합 방식을 & 로 바꾸면 됩니다.
+        if genre_param:
+            genres = [g.strip() for g in genre_param.split(',') if g.strip()]
+            if genres:
+                q_objects = Q()
+                for g in genres:
+                    # genres__icontains는 콤마로 구분된 문자열에서 검색
+                    q_objects &= Q(genres__icontains=g) 
+                qs = qs.filter(q_objects)
+        
+        # 3. 가격 범위 필터링
+        if min_price is not None and min_price != '':
+            qs = qs.filter(price__gte=int(min_price))
+            
+        if max_price is not None and max_price != '':
+            qs = qs.filter(price__lte=int(max_price))
+
+        # 4. 정렬
+        if sort_option == 'price_asc':
+            qs = qs.order_by('price')
+        elif sort_option == 'price_desc':
+            qs = qs.order_by('-price')
+        elif sort_option == 'name':
+            qs = qs.order_by('title')
+        else:
+            qs = qs.order_by('-release_date', '-appid')
+
+        # 5. 페이징 및 응답
+        total_count = qs.count()
+        qs = qs[offset : offset + limit]
+        
+        data = []
+        for game in qs:
+            data.append({
+                "appid": game.appid,
+                "title": game.title,
+                "header_image": game.header_image,
+                "price": game.price,
+                "genres": game.genres,
+                "release_date": game.release_date
+            })
+
+        return Response({
+            "count": total_count,
+            "results": data
+        }, status=status.HTTP_200_OK)
