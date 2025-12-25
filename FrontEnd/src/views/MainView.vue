@@ -3,9 +3,22 @@
 <template>
   <div class="main-container">
     <div class="search-wrapper">
+      <div v-if="showSecretVideo" class="video-container">
+        <iframe 
+          width="800" 
+          height="735" 
+          src="https://www.youtube.com/embed/0E15Mw7pjJw?autoplay=1" 
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allowfullscreen>
+        </iframe>
+        <button @click="showSecretVideo = false" class="close-video-btn">✕</button>
+      </div>
+
       <h1 class="logo">
-        <span class="steam">Steam</span>
-        <span class="ecyce">Ecyce</span>
+        <span class="steam" style="user-select: none;">Steam</span>
+        <span class="ecyce" @click="openEcyce" style="user-select: none;">Ecyce</span>
       </h1>
       
       <div class="search-box" :class="{ 'active': searchKeyword.length > 0 || searchResults.length > 0 }">
@@ -212,6 +225,24 @@ const goToFullSearch = () => {
   router.push({ name: 'search-results', query: { q: searchKeyword.value } });
 };
 
+// 이스터에그
+const showSecretVideo = ref(false);
+const clickCount = ref(0);
+let clickTimer = null;
+
+const openEcyce = () => {
+  clickCount.value++;
+  if (clickTimer) clearTimeout(clickTimer);
+  if (clickCount.value === 3) {
+    showSecretVideo.value = true;
+    clickCount.value = 0;
+    return;
+  }
+  clickTimer = setTimeout(() => {
+    clickCount.value = 0;
+  }, 400);
+};
+
 onMounted(() => {
   if (route.query.q) {
     searchKeyword.value = route.query.q;
@@ -361,5 +392,42 @@ input::placeholder { color: #9aa0a6; }
   width: fit-content;
   margin-top: 4px;
   font-weight: 500;
+}
+
+/* MainView.vue <style scoped> 내부 하단에 추가 */
+
+.video-container {
+  margin-bottom: 20px;
+  animation: fadeIn 0.5s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.video-container iframe {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.close-video-btn {
+  background: #f1f3f4;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.close-video-btn:hover {
+  background: #e8eaed;
+  color: #171a21;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

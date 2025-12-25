@@ -177,7 +177,7 @@ body {
   transition: opacity 0.2s;
 }
 
-.logo:hover {
+.navbar .logo:hover {
   opacity: 0.8;
 }
 
