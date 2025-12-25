@@ -53,7 +53,7 @@
         <section class="info-card favorite-game">
           <div class="card-title">
             <span class="emoji">⭐</span>
-            <h2>나의 최애 게임</h2>
+            <h2>나의 인생 게임</h2>
           </div>
           <div v-if="profileData.favorite_game" class="fav-content">
             <router-link :to="{ name: 'GameDetail', params: { id: profileData.favorite_game.appid } }" class="game-link">
@@ -63,7 +63,14 @@
               <p class="game-title">{{ profileData.favorite_game.title }}</p>
             </router-link>
           </div>
-          <div v-else class="empty-small">등록된 게임이 없습니다.</div>
+          <div v-else class="empty-small">
+            등록된 게임이 없습니다.
+            <br><br>
+            <button class="action-btn worldcup-btn" @click="$router.push({ name: 'worldcup' })">
+              <span class="btn-icon">🏆</span>
+              인생 게임 찾기
+            </button>
+          </div>
         </section>
 
         <div class="management-zone">
@@ -203,4 +210,69 @@ const handleWithdraw = async () => {
 .btn-withdraw:hover { color: #f44336; }
 
 .loading-state { text-align: center; padding: 100px; color: #888; }
+
+/* 버튼 기본 스타일 */
+.worldcup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 28px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  
+  /* 그라데이션: Steam 느낌의 블루 + 에메랄드 */
+  background: linear-gradient(135deg, #66c0f4 0%, #42b883 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  
+  /* 그림자와 트랜지션 */
+  box-shadow: 0 4px 15px rgba(66, 184, 131, 0.3);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden; /* 반짝임 효과용 */
+}
+
+/* 호버 효과: 살짝 커지고 더 밝아짐 */
+.worldcup-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(66, 184, 131, 0.5);
+  filter: brightness(1.1);
+}
+
+/* 클릭 효과: 꾹 눌리는 느낌 */
+.worldcup-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 트로피 아이콘 애니메이션 */
+.btn-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.worldcup-btn:hover .btn-icon {
+  transform: rotate(-15deg) scale(1.2);
+}
+
+/* 반짝이는 효과 (필요없으면 삭제 가능) */
+.worldcup-btn::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: rgba(255, 255, 255, 0.13);
+  transform: rotate(45deg);
+  pointer-events: none;
+  transition: all 0.5s;
+}
+
+.worldcup-btn:hover::after {
+  left: 100%;
+  top: 100%;
+}
+
 </style>
