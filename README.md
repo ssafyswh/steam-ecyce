@@ -25,26 +25,58 @@
 * **기본 검색**: 게임 타이틀 기반의 빠르고 정확한 검색을 지원합니다.
 * **AI 보완 검색**: 오타나 유사어 검색 시 AI가 맥락을 파악하여 적절한 결과를 추천합니다.
 
-> **![실행 화면 1](/Docs/Images/example1.gif) ![실행 화면 2](/Docs/Images/example2.png)**
+<details>
+  <summary>실행 화면</summary>
+  <div>
+    <img src="./Docs/Images/example1.gif" width="800px" alt="실행 화면 1" />
+    <br>
+    <img src="./Docs/Images/example2.png" width="800px" alt="실행 화면 2" />
+  </div>
+</details>
 
 ### 📝 AI 리뷰 요약 및 구조화 (Review Summary)
 * **AI 큐레이터**: 흩어져 있는 수많은 유저 리뷰를 분석하여 종합 요약문을 생성합니다.
 * **데이터 최신화**: 잦은 API 호출을 방지하면서도 최신 리뷰가 반영된 요약 정보를 제공합니다.
 
-> **![실행 화면 3](/Docs/Images/example3.webp) ![실행 화면 4](/Docs/Images/example4.png)**
+<details>
+  <summary>실행 화면</summary>
+  <div>
+    <img src="./Docs/Images/example3.webp" width="800px" alt="실행 화면 3" />
+    <br>
+    <img src="./Docs/Images/example4.png" width="800px" alt="실행 화면 4" />
+  </div>
+</details>
 
 ### 📊 개인화 분석 리포트 & 추천 (Analysis & Recommendation)
 * **게이머 분석**: 사용자의 실제 플레이 타임과 장르 선호도를 기반으로 분석 리포트를 제공합니다.
 * **맞춤형 추천**: 분석된 결과를 바탕으로 유저의 취향에 딱 맞는 차기 게임을 추천합니다.
 
-> **![실행 화면 5](/Docs/Images/example5.gif) ![실행 화면 6](/Docs/Images/example6.png) ![실행 화면 7](/Docs/Images/example7.png)**
+<details>
+  <summary>실행 화면</summary>
+  <div>
+    <img src="./Docs/Images/example5.gif" width="800px" alt="실행 화면 5" />
+    <br>
+    <img src="./Docs/Images/example6.png" width="800px" alt="실행 화면 6" />
+    <br>
+    <img src="./Docs/Images/example7.png" width="800px" alt="실행 화면 7" />
+  </div>
+</details>
 
 ### 🏆 게임 이상형 월드컵 & 커뮤니티 (Contents)
 * **월드컵 컨텐츠**: 유저 라이브러리에 있는 게임들을 대상으로 월드컵을 진행합니다.
 * **최애 게임 반영**: 우승한 게임은 '최애 게임'으로 선정되어 프로필에 반영됩니다.
 * **커뮤니티 공유**: 월드컵 결과와 리뷰를 커뮤니티에 공유하여 다른 유저들과 소통합니다.
 
-> **![실행 화면 8](/Docs/Images/example8.png) ![실행 화면 9](/Docs/Images/example9.png) ![실행 화면 10](/Docs/Images/example10.png)**
+<details>
+  <summary>실행 화면</summary>
+  <div>
+    <img src="./Docs/Images/example8.png" width="800px" alt="실행 화면 8" />
+    <br>
+    <img src="./Docs/Images/example9.png" width="800px" alt="실행 화면 9" />
+    <br>
+    <img src="./Docs/Images/example10.png" width="800px" alt="실행 화면 10" />
+  </div>
+</details>
 
 [실행 예시 영상](https://youtu.be/0v7zxwRBH50?si=cdGl9m12jSptUEUy)
 
@@ -64,11 +96,13 @@
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
 ![Django REST Framework](https://img.shields.io/badge/DRF-FF1709?style=for-the-badge&logo=django&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+
+#### **Database**
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
 
 #### **AI & API**
-![OpenAI](https://img.shields.io/badge/GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)
-![Google Gemini](https://img.shields.io/badge/Gemini--1.5--Flash-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white)
+![OpenAI](https://img.shields.io/badge/GPT--5--nano-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Gemini--2.5--Flash--lite-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white)
 ![Steam](https://img.shields.io/badge/Steam_Web_API-000000?style=for-the-badge&logo=steam&logoColor=white)
 
 #### **Tools**
@@ -86,7 +120,10 @@
 ### 🏗 ERD 설계
 * 프로젝트의 백엔드 구조는 `Accounts`, `Games`, `Community`, `AI Analysis`의 4가지 앱으로 설계되었습니다.
 
-> ![ERD](/Docs/Images/ERD.png)
+<details>
+  <summary>ERD 상세</summary>
+  <img src="./Docs/Images/ERD.png" width="800px" alt="ERD" />
+</details>
 
 ---
 
